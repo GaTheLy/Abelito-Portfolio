@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* ── Design tokens (M0) ─────────────────────────────────────────────────────
+   Single source of truth. No component may use a raw hex or one-off px value;
+   everything draws from the tokens below via Tailwind utilities
+   (bg-builder, text-foreground, rounded-md, font-voice, …).
+   ──────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Brand accents — LOCKED palette, exact order. Constant across themes.
+     Used as solid fills (with white/cream text) and thin rules, never as
+     low-contrast text directly on the page background. */
+  --color-builder: #5e0006; /* oxblood */
+  --color-creator: #9b0f06; /* red */
+  --color-hobbyist: #d53e0f; /* orange-red */
+  --color-cream: #eed9b9; /* warm neutral "paper" */
+
+  /* Radius scale — flat, restrained. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+
+  /* Spacing intentionally left to Tailwind's default scale — it is already a
+     consistent, token-based scale; no parallel one is invented here. */
+}
+
+/* Semantic neutrals as runtime variables so they can flip per theme.
+   Light (warm) is the primary theme. */
+:root {
+  --background: #fbf8f3;
+  --foreground: #1a1310;
+  --muted: #756a5e;
+  --border: #e6dbcb;
+  --card: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #17120e;
+    --foreground: #f1e9dc;
+    --muted: #a99c8c;
+    --border: #322a21;
+    --card: #201914;
+  }
+}
+
+/* Expose the runtime neutrals + font variables to Tailwind so utilities like
+   bg-background / text-muted / border-border / font-voice exist. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-card: var(--card);
+
+  --font-sans: var(--font-sans-var);
+  --font-voice: var(--font-voice-var);
+  --font-mono: var(--font-mono-var);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans-var), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Routing-readout reveal — the "real value, briefly shown" moment.
+   CSS-only for M1; Framer Motion arrives in M5. */
+@keyframes readout-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer utilities {
+  .animate-readout {
+    animation: readout-in 300ms ease-out both;
+  }
+}
