@@ -1,0 +1,21 @@
+name: CI
+
+# Quality gate that runs before Vercel deploys: lint, routing self-check, build.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # native TS stripping (for the self-check) needs 22.6+
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: node lib/orchestrator/classify.check.ts
+      - run: npm run build
