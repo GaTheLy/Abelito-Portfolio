@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { classify } from "@/lib/orchestrator/classify";
 import { classifyBySemantics, warmupEmbedder } from "@/lib/orchestrator/embed";
 import { getProject, overviewIndex, projects } from "@/lib/projects";
@@ -72,6 +73,7 @@ export default function Orchestrator() {
   const seen = useRef<Map<string, Set<number>>>(new Map());
 
   const busy = revealingId !== null;
+  const reduce = useReducedMotion();
 
   // Time-of-day is a client-only value; reading it post-mount is the correct use
   // of an effect here — it avoids an SSR hydration mismatch on the greeting.
@@ -79,8 +81,11 @@ export default function Orchestrator() {
   useEffect(() => setGreeting(timeGreeting()), []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [turns, revealingId]);
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }, [turns, revealingId, reduce]);
 
   // Start downloading the embedding model in the background so the first ask is
   // already semantic. Harmless if it fails — keyword routing covers it.
@@ -258,6 +263,7 @@ export default function Orchestrator() {
                     turn={turn}
                     revealing={turn.id === revealingId}
                     busy={busy}
+                    reduce={reduce}
                     onOpen={open}
                   />
                 ))}
@@ -293,15 +299,27 @@ function TurnView({
   turn,
   revealing,
   busy,
+  reduce,
   onOpen,
 }: {
   turn: Turn;
   revealing: boolean;
   busy: boolean;
+  reduce: boolean | null;
   onOpen: (view: View, label: string) => void;
 }) {
+  // Entrance = the agent "handoff": a new turn eases in. Reduced motion drops
+  // the movement and keeps just a quick fade.
+  const enter = reduce
+    ? { initial: { opacity: 0 }, animate: { opacity: 1 } }
+    : { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 } };
+
   return (
-    <div className="space-y-4">
+    <motion.div
+      {...enter}
+      transition={reduce ? { duration: 0.15 } : { type: "spring", stiffness: 380, damping: 30 }}
+      className="space-y-4"
+    >
       <div className="flex justify-end">
         <p className="max-w-md rounded-2xl rounded-br-sm border border-border bg-card px-4 py-2 text-sm">
           {turn.userText}
@@ -312,32 +330,50 @@ function TurnView({
           ✳
         </span>
         <div className="min-w-0 flex-1">
-          {turn.view && !revealing ? (
-            <div className="animate-readout">
-              <p className="mb-4 font-mono text-xs text-muted">{turn.caption}</p>
-              <ResponseView view={turn.view} />
-              {turn.followUps.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {turn.followUps.map((fu) => (
-                    <button
-                      key={fu.label}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => onOpen(fu.view, fu.label)}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
-                    >
-                      {fu.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="animate-pulse font-mono text-xs text-muted">routing…</p>
-          )}
+          {/* The routing reveal: readout → response, crossfaded. */}
+          <AnimatePresence mode="wait" initial={false}>
+            {turn.view && !revealing ? (
+              <motion.div
+                key="content"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0.01 : 0.25 }}
+              >
+                <p className="mb-4 font-mono text-xs text-muted">{turn.caption}</p>
+                <ResponseView view={turn.view} />
+                {turn.followUps.length > 0 && (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {turn.followUps.map((fu) => (
+                      <button
+                        key={fu.label}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => onOpen(fu.view, fu.label)}
+                        className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
+                      >
+                        {fu.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.p
+                key="routing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0.01 : 0.2 }}
+                className="animate-pulse font-mono text-xs text-muted"
+              >
+                routing…
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

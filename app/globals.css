@@ -64,25 +64,6 @@ body {
   font-family: var(--font-sans-var), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Routing-readout reveal — the "real value, briefly shown" moment.
-   CSS-only for M1; Framer Motion arrives in M5. */
-@keyframes readout-in {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@layer utilities {
-  .animate-readout {
-    animation: readout-in 300ms ease-out both;
-  }
-}
-
 /* Accessible keyboard focus for every interactive element. Inputs opt out of
    the browser default (outline-none) for styling, so this restores a visible,
    theme-aware indicator — shown only for keyboard/programmatic focus. Unlayered
