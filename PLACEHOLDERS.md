@@ -41,10 +41,11 @@ Legend for "Type": **prose** = writing · **data** = structured values ·
 | Builder title "Things I've built." (`BuilderSection.tsx`) | prose | Placeholder title | Real Builder section title |
 | Builder intro | prose | Reuses the agent `description` string | Real Builder intro (or refine the shared description) |
 
-### Case-study content (`lib/projects.ts`)
+### Case-study content (`content/projects/*.mdx`)
 
-All three projects (`datasaur`, `riset`, `manna`) are **fully placeholder** except
-their slugs. Same shape gets replaced by Velite/MDX in M2.
+Case studies are now authored as MDX with the block array in frontmatter
+(validated by `velite.config.ts`). Edit `content/projects/{datasaur,riset,manna}.mdx`.
+All three are **fully placeholder** except their slugs.
 
 | Field (per project) | Type | What's placeholder | Real content needed |
 |---|---|---|---|
@@ -88,4 +89,4 @@ about low confidence). Its chips mirror the greeting chips; keep them in sync.
 | `lib/orchestrator/agents.ts` — `description` | tunable | User-facing intro copy, also embedded for routing | Refine wording; affects both display and routing |
 | `lib/orchestrator/embed.ts` — `SEMANTIC_THRESHOLD` | tunable | Cosine cutoff (0.40, calibrated) below which prompts go to fallback | Raise if routing is too eager, lower if too shy |
 | `lib/orchestrator/classify.ts` | live fallback | Keyword router — used when the embedding model isn't ready/available | Not a placeholder; keep it working |
-| `lib/projects.ts` (whole array) | M2 | Hardcoded project data | Velite-generated data of the same `Project`/`Block` shape (import swap only) |
+| `content/projects/*.mdx` | ✅ M2 done | Case studies now authored in MDX (Velite-validated); `lib/projects.ts` is a thin adapter | Replace the placeholder frontmatter with real content |
