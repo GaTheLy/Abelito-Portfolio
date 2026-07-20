@@ -22,7 +22,9 @@ export default function SiteNav() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
+      {/* min-h keeps the bar the same height on home (no prompt) as on the
+          routed pages (where the taller compact prompt is shown). */}
+      <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
         <Link href="/" className="font-mono text-sm font-medium tracking-tight">
           abelito<span className="text-muted">.orchestrator</span>
         </Link>
