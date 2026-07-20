@@ -15,6 +15,8 @@ const fraunces = Fraunces({
 const geistMono = Geist_Mono({ variable: "--font-mono-var", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  // Production origin — resolves canonical/OG URLs correctly once deployed.
+  metadataBase: new URL("https://abelitovisese.com"),
   // Name + role are structural (real); tagline is placeholder.
   title: "Abelito Visese — AI/ML Engineer",
   // TODO_ABELITO: replace with a real one-line description for SEO / social.
