@@ -18,5 +18,5 @@ jobs:
       - run: npm ci
       - run: npx velite # generate content data before lint/typecheck/build
       - run: npm run lint
-      - run: node lib/orchestrator/classify.check.ts
+      - run: node lib/orchestrator/retrieve-core.check.ts
       - run: npm run build

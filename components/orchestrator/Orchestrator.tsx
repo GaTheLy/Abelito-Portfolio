@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { classify } from "@/lib/orchestrator/classify";
-import { classifyBySemantics, warmupEmbedder } from "@/lib/orchestrator/embed";
+import { retrieve, MIN_SCORE } from "@/lib/orchestrator/retrieve";
 import { getProject, overviewIndex, projects } from "@/lib/projects";
 import { blockLabel, blockQuestion } from "@/lib/blocks";
 import type { AgentId } from "@/lib/orchestrator/agents";
@@ -87,10 +86,6 @@ export default function Orchestrator() {
     });
   }, [turns, revealingId, reduce]);
 
-  // Start downloading the embedding model in the background so the first ask is
-  // already semantic. Harmless if it fails — keyword routing covers it.
-  useEffect(() => warmupEmbedder(), []);
-
   // Next-chunk suggestions for a project, excluding chunks already seen. When a
   // project is exhausted, suggest other projects instead.
   const recsForProject = useCallback((slug: string): FollowUp[] => {
@@ -138,39 +133,21 @@ export default function Orchestrator() {
   }, []);
 
   const ask = useCallback(
-    async (text: string) => {
+    (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
-
-      // Phase 1: show the prompt + a live "routing…" beat immediately.
-      const id = nextId.current++;
-      setTurns((prev) => [
-        ...prev,
-        { id, userText: trimmed, view: null, caption: "routing…", followUps: [] },
-      ]);
-      setRevealingId(id);
-
-      // Phase 2: real classification — semantic if the model is ready, else keyword.
-      let r = null;
-      try {
-        r = await classifyBySemantics(trimmed);
-      } catch {
-        r = null;
+      // Rank every addressable unit (project chunks + sections) against the text
+      // and jump to the best match — so a prompt can land on any chunk directly.
+      const results = retrieve(trimmed);
+      const top = results[0];
+      if (!top || top.score < MIN_SCORE) {
+        respond(trimmed, { kind: "fallback", q: trimmed, confidence: 0 }, "no match", []);
+        return;
       }
-      if (!r) r = classify(trimmed);
-
-      const c = r.confidence.toFixed(2);
-      const view: View = r.agentId
-        ? { kind: "agent", agentId: r.agentId }
-        : { kind: "fallback", q: trimmed, confidence: r.confidence };
-      const caption = r.agentId ? `→ ${r.agentId} · ${c} · ${r.method}` : `no match · ${c} · ${r.method}`;
-      const followUps = followUpsFor(view);
-
-      setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, view, caption, followUps } : t)));
-      // Brief reveal beat so the readout is visible even when classification is instant.
-      window.setTimeout(() => setRevealingId((cur) => (cur === id ? null : cur)), REVEAL_MS);
+      const view: View = top.target;
+      respond(trimmed, view, `→ ${top.label.toLowerCase()}`, followUpsFor(view));
     },
-    [busy, followUpsFor],
+    [busy, respond, followUpsFor],
   );
 
   const open = useCallback(

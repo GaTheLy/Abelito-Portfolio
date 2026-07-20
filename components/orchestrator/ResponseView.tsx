@@ -32,7 +32,7 @@ export default function ResponseView({ view }: { view: View }) {
         </div>
       );
     case "fallback":
-      return <FallbackSection q={view.q} confidence={view.confidence} />;
+      return <FallbackSection q={view.q} />;
   }
 }
 
@@ -52,7 +52,7 @@ function AgentSection({ agentId }: { agentId: AgentId }) {
 // One chunk (block) of a case study, with a compact project header for context.
 function ChunkResponse({ slug, index }: { slug: string; index: number }) {
   const project = getProject(slug);
-  if (!project) return <FallbackSection q={slug} confidence={0} />;
+  if (!project) return <FallbackSection q={slug} />;
   const block = project.blocks[index];
   if (!block) return null;
   const agent = agentById(project.agent);
@@ -93,16 +93,14 @@ const fallbackChips = [
   { label: "Who are you?", prompt: "who are you, tell me your story" },
 ];
 
-function FallbackSection({ q, confidence }: { q: string; confidence: number }) {
+function FallbackSection({ q }: { q: string }) {
   const { ask } = useOrchestrator();
   return (
     <div className="max-w-prose">
       <h2 className="text-xl font-semibold tracking-tight">I wasn’t sure where to send you.</h2>
       <p className="mt-2 text-muted">
-        Your request didn’t match a section with enough confidence
-        {q ? <> for <span className="text-foreground">“{q}”</span></> : null} (score{" "}
-        <span className="font-mono text-foreground">{confidence.toFixed(2)}</span>), so I won’t
-        guess. Try rephrasing, or pick a direction:
+        I couldn’t match{q ? <> “<span className="text-foreground">{q}</span>”</> : " that"} to a
+        section confidently, so I won’t guess. Try rephrasing, or pick a direction:
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         {fallbackChips.map((chip) => (
