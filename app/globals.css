@@ -82,3 +82,24 @@ body {
     animation: readout-in 300ms ease-out both;
   }
 }
+
+/* Accessible keyboard focus for every interactive element. Inputs opt out of
+   the browser default (outline-none) for styling, so this restores a visible,
+   theme-aware indicator — shown only for keyboard/programmatic focus. Unlayered
+   so it wins over the outline-none utility. */
+:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* Respect users who prefer reduced motion — neutralize animations/transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -245,7 +245,12 @@ export default function Orchestrator() {
         ) : (
           // Conversation — responses stack, composer docks at the bottom.
           <>
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-8">
+            <div
+              ref={scrollRef}
+              aria-live="polite"
+              aria-label="Conversation"
+              className="flex-1 overflow-y-auto px-6 py-8"
+            >
               <div className="mx-auto max-w-6xl space-y-10">
                 {turns.map((turn) => (
                   <TurnView

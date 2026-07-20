@@ -43,7 +43,9 @@ function Body({ block }: { block: Block }) {
             <div key={m.label} className="rounded-md border border-border bg-card p-4">
               <dt className="text-sm text-muted">{m.label}</dt>
               <dd className="mt-1 text-2xl font-semibold tracking-tight">{m.value}</dd>
-              {m.delta && <dd className="mt-0.5 text-sm text-hobbyist">{m.delta}</dd>}
+              {/* Muted (not the low-contrast accent) so it passes AA; the +/− sign
+                  carries the direction, not colour alone. */}
+              {m.delta && <dd className="mt-0.5 text-sm font-medium text-muted">{m.delta}</dd>}
             </div>
           ))}
         </dl>

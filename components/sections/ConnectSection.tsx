@@ -18,10 +18,16 @@ export default function ConnectSection() {
       <p className="mt-3 text-muted">The direct ways to reach me.</p>
       <dl className="mt-8 divide-y divide-border border-y border-border">
         {links.map((link) => (
-          <div key={link.label} className="flex items-center justify-between py-4">
+          <div
+            key={link.label}
+            className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+          >
             <dt className="text-sm text-muted">{link.label}</dt>
-            <dd>
-              <a href={link.href} className="text-foreground underline-offset-4 hover:underline">
+            <dd className="min-w-0">
+              <a
+                href={link.href}
+                className="break-words text-foreground underline-offset-4 hover:underline"
+              >
                 {link.value}
               </a>
             </dd>

@@ -42,7 +42,8 @@ export default function SiteNav() {
         </nav>
 
         {/* Chat stays reachable everywhere: on other pages, prompting drops you
-            into the conversation on home. Hidden on home (big composer is there). */}
+            into the conversation on home. Hidden on home (big composer is there)
+            and on small screens (tap the brand → home to chat) to avoid crowding. */}
         {!onHome && (
           <form
             onSubmit={(e) => {
@@ -52,7 +53,7 @@ export default function SiteNav() {
               router.push(`/?q=${encodeURIComponent(v)}`);
               setQ("");
             }}
-            className="ml-auto flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5"
+            className="ml-auto hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 sm:flex"
           >
             <input
               type="text"
