@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "velite": "velite",
+    "dev": "velite && next dev",
+    "build": "velite && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "content:watch": "velite --watch"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
@@ -23,6 +25,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "velite": "^0.4.0"
   }
 }

@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# velite (generated content data)
+/.velite
+
 # production
 /build
 
