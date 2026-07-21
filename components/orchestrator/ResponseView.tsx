@@ -9,7 +9,7 @@ import ConnectSection from "@/components/sections/ConnectSection";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 import { getProject } from "@/lib/projects";
 import { agentById, type AgentId } from "@/lib/orchestrator/agents";
-import { useOrchestrator, type View } from "./context";
+import { useOrchestrator, type Citation, type View } from "./context";
 
 // Responses are plain AI-formatted content (no browser-frame embed). Where a
 // real page exists, a subtle "open full page ↗" link points to it.
@@ -31,9 +31,41 @@ export default function ResponseView({ view }: { view: View }) {
           <FullPageLink path="/connect" />
         </div>
       );
+    case "answer":
+      return <AnswerResponse text={view.text} citations={view.citations} />;
     case "fallback":
       return <FallbackSection q={view.q} />;
   }
+}
+
+// A grounded Tier-2 answer: prose synthesized only from the cited sections,
+// with links to each so the visitor can verify and dive in.
+function AnswerResponse({ text, citations }: { text: string; citations: Citation[] }) {
+  const { open } = useOrchestrator();
+  return (
+    <div>
+      <p className="max-w-prose leading-relaxed text-foreground/90">{text}</p>
+      {citations.length > 0 && (
+        <div className="mt-5">
+          <p className="mb-2 font-mono text-xs uppercase tracking-widest text-muted">
+            From Abelito’s work
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {citations.map((c, i) => (
+              <button
+                key={`${c.label}-${i}`}
+                type="button"
+                onClick={() => open(c.target, c.label)}
+                className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted transition-colors hover:border-foreground/30 hover:text-foreground"
+              >
+                {c.label} ↗
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function AgentSection({ agentId }: { agentId: AgentId }) {

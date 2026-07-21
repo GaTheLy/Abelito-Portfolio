@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { retrieve, MIN_SCORE } from "@/lib/orchestrator/retrieve";
+import { retrieve, NAV_THRESHOLD } from "@/lib/orchestrator/retrieve";
 import { getProject, overviewIndex, projects } from "@/lib/projects";
 import { blockLabel, blockQuestion } from "@/lib/blocks";
 import type { AgentId } from "@/lib/orchestrator/agents";
@@ -54,6 +54,8 @@ function captionFor(view: View): string {
     }
     case "connect":
       return "→ connect";
+    case "answer":
+      return "grounded answer";
     case "fallback":
       return "no match";
   }
@@ -133,19 +135,49 @@ export default function Orchestrator() {
   }, []);
 
   const ask = useCallback(
-    (text: string) => {
+    async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
-      // Rank every addressable unit (project chunks + sections) against the text
-      // and jump to the best match — so a prompt can land on any chunk directly.
-      const results = retrieve(trimmed);
-      const top = results[0];
-      if (!top || top.score < MIN_SCORE) {
-        respond(trimmed, { kind: "fallback", q: trimmed, confidence: 0 }, "no match", []);
+
+      // Tier 1: a strong retrieval match jumps straight there — instant, no LLM.
+      const top = retrieve(trimmed)[0];
+      if (top && top.score >= NAV_THRESHOLD) {
+        respond(trimmed, top.target, `→ ${top.label.toLowerCase()}`, followUpsFor(top.target));
         return;
       }
-      const view: View = top.target;
-      respond(trimmed, view, `→ ${top.label.toLowerCase()}`, followUpsFor(view));
+
+      // Tier 2: hand off to the grounded RAG endpoint. Show a "thinking…" beat
+      // while it works; on any failure, fall back to the suggestion UI.
+      const id = nextId.current++;
+      setTurns((prev) => [
+        ...prev,
+        { id, userText: trimmed, view: null, caption: "thinking…", followUps: [] },
+      ]);
+      setRevealingId(id);
+
+      let view: View;
+      let caption: string;
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ query: trimmed }),
+        });
+        const data = await res.json();
+        if (data?.ok && data.answer) {
+          view = { kind: "answer", text: data.answer, citations: data.citations ?? [] };
+          caption = "grounded answer";
+        } else {
+          view = { kind: "fallback", q: trimmed, confidence: 0 };
+          caption = "no match";
+        }
+      } catch {
+        view = { kind: "fallback", q: trimmed, confidence: 0 };
+        caption = "offline";
+      }
+
+      setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, view, caption } : t)));
+      window.setTimeout(() => setRevealingId((cur) => (cur === id ? null : cur)), REVEAL_MS);
     },
     [busy, respond, followUpsFor],
   );
@@ -344,7 +376,7 @@ function TurnView({
                 transition={{ duration: reduce ? 0.01 : 0.2 }}
                 className="animate-pulse font-mono text-xs text-muted"
               >
-                routing…
+                {turn.view === null ? turn.caption : "routing…"}
               </motion.p>
             )}
           </AnimatePresence>
