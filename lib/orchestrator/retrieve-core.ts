@@ -20,9 +20,12 @@ export interface Retrieved {
   score: number;
 }
 
-// Navigate only when the best unit clears this; below it the caller shows the
-// honest fallback (and, later, Tier-2 RAG handles fuzzy/question cases).
+// Any match at or above this is a match worth keeping (used by the self-check).
 export const MIN_SCORE = 2;
+
+// Jump instantly only on a strong match (a name hit, or several keyword hits).
+// Below this the caller hands off to Tier-2 RAG for a grounded answer.
+export const NAV_THRESHOLD = 5;
 
 const STOP = new Set([
   "the", "a", "an", "of", "to", "is", "are", "am", "in", "on", "at", "for",

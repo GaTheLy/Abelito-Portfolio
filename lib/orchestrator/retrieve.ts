@@ -3,7 +3,7 @@ import { agents, type AgentId } from "@/lib/orchestrator/agents";
 import { blockLabel, type Block } from "@/lib/blocks";
 import { rank, tokenize, type Unit } from "./retrieve-core";
 
-export { MIN_SCORE } from "./retrieve-core";
+export { MIN_SCORE, NAV_THRESHOLD } from "./retrieve-core";
 
 // Narrowed target type for consumers (core keeps agentId loose to stay
 // dependency-free; here the ids are known-valid AgentIds).
@@ -105,4 +105,16 @@ const index: Unit[] = (() => {
 // Rank every addressable unit against free-text; best matches first.
 export function retrieve(query: string, k = 4): Retrieved[] {
   return rank(query, index, k) as Retrieved[];
+}
+
+// Top matches WITH their content text — the grounding context for Tier-2 RAG
+// (server-side). The LLM answers only from these excerpts.
+export function retrieveContext(
+  query: string,
+  k = 6,
+): { label: string; target: NavTarget; text: string }[] {
+  return rank(query, index, k).map((r) => {
+    const unit = index.find((u) => u.label === r.label);
+    return { label: r.label, target: r.target as NavTarget, text: unit ? unit.text : "" };
+  });
 }
