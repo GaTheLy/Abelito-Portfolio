@@ -4,24 +4,26 @@ export default function OriginSection() {
   return (
     <div className="font-voice">
       <p className="font-sans text-xs uppercase tracking-widest text-muted">Origin</p>
-      {/* TODO_ABELITO: replace with the real personal narrative, in Abelito's voice */}
+      {/* TODO_ABELITO: DEMO narrative — generic placeholder, not real biography.
+          Replace with the real personal story, in your own voice. */}
       <h1 className="mt-6 text-3xl font-normal leading-tight tracking-tight sm:text-4xl">
-        A placeholder for the personal story.
+        The person behind the work.
       </h1>
       <div className="mt-8 space-y-6 text-lg leading-relaxed text-foreground/90">
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-          incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-          exercitation ullamco laboris.
+          I started where a lot of engineers start — taking things apart to see how they worked,
+          then getting impatient to build my own. Somewhere along the way that curiosity pointed
+          itself at language and machine learning, and it hasn’t really let go since.
         </p>
         <p>
-          Nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-          voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-          cupidatat non proident.
+          What I care about most isn’t the model — it’s the system around it: the interface, the
+          feedback loop, the small decisions that make something people actually keep using. Most
+          of the work I’m proud of looks quiet from the outside and took a lot of iterations to
+          get there.
         </p>
         <p>
-          Sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis
-          unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.
+          Away from the screen it’s cars, markets, and an endless list of “wait, why does that
+          work?” questions — the same curiosity, pointed somewhere new.
         </p>
       </div>
     </div>

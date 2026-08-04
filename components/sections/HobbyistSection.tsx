@@ -1,12 +1,12 @@
 import AgentPageHeader from "@/components/AgentPageHeader";
 import { agentById } from "@/lib/orchestrator/agents";
 
-// TODO_ABELITO: replace with real interests (cars, investing, curiosities).
+// TODO_ABELITO: DEMO content — replace with the real interests.
 const items = [
-  { title: "Placeholder interest", meta: "Cars · placeholder note" },
-  { title: "Placeholder interest", meta: "Investing · placeholder note" },
-  { title: "Placeholder interest", meta: "Curiosity · placeholder note" },
-  { title: "Placeholder interest", meta: "Edutainment · placeholder note" },
+  { title: "Manual-only garage", meta: "Cars · project-car log" },
+  { title: "Index-and-chill", meta: "Investing · long-term portfolio notes" },
+  { title: "Why does that work?", meta: "Curiosity · explainer threads" },
+  { title: "Track days", meta: "Cars · lap-time diary" },
 ];
 
 // Shared body for /hobbyist AND the hobbyist conversation response.

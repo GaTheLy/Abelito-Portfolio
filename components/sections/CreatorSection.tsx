@@ -1,12 +1,12 @@
 import AgentPageHeader from "@/components/AgentPageHeader";
 import { agentById } from "@/lib/orchestrator/agents";
 
-// TODO_ABELITO: replace with real content pieces (videos, series, links).
+// TODO_ABELITO: DEMO content — replace with the real content pieces.
 const items = [
-  { title: "Placeholder series", meta: "Placeholder format · 0 posts" },
-  { title: "Placeholder series", meta: "Placeholder format · 0 posts" },
-  { title: "Placeholder series", meta: "Placeholder format · 0 posts" },
-  { title: "Placeholder series", meta: "Placeholder format · 0 posts" },
+  { title: "Building in Public", meta: "YouTube series · 12 videos" },
+  { title: "ML Paper Walkthroughs", meta: "Short-form · 30 clips" },
+  { title: "From Zero to Shipped", meta: "Blog series · 8 posts" },
+  { title: "Ask an AI Engineer", meta: "Live Q&A · monthly" },
 ];
 
 // Shared body for /creator AND the creator conversation response.

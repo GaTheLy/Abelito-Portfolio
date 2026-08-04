@@ -2,7 +2,13 @@
 
 The single checklist of every piece of placeholder content in the site. Work
 through it before launch. Every item is marked in-code with `TODO_ABELITO:`
-(grep for it: `grep -rn TODO_ABELITO app components lib`).
+(grep for it: `grep -rn TODO_ABELITO app components lib content`).
+
+> **2026-07-21 — content is now coherent DEMO, not lorem.** Case studies
+> (`content/projects/*.mdx`) and the creator/hobbyist/origin sections were filled
+> with realistic-but-fictional placeholder content so the chat navigation and RAG
+> answers can be shown off. It is **not** real — it invents nothing you actually
+> did; replace it with the real story in M4. Everything is still marked `TODO_ABELITO`.
 
 **What is _not_ here (intentionally real, do not change):** route names, agent
 names (Builder / Creator / Hobbyist / Origin), nav labels, block-type labels,
