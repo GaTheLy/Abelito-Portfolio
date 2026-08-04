@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { retrieve, NAV_THRESHOLD, entityOf } from "@/lib/orchestrator/retrieve";
+import { retrieve, NAV_THRESHOLD, entityOf, citationsFor } from "@/lib/orchestrator/retrieve";
 import { getProject, overviewIndex, projects } from "@/lib/projects";
 import { blockLabel, blockQuestion } from "@/lib/blocks";
 import type { AgentId } from "@/lib/orchestrator/agents";
@@ -44,6 +44,24 @@ function timeGreeting(): string {
   return "Good evening";
 }
 
+type ChatMsg = { role: "user" | "assistant"; content: string };
+
+// Recent conversation as messages for the LLM, so follow-ups have context.
+// Navigations become a short note about what was shown.
+function buildHistory(turns: Turn[]): ChatMsg[] {
+  const msgs: ChatMsg[] = [];
+  for (const t of turns) {
+    if (t.view === null) continue; // skip an in-flight turn
+    msgs.push({ role: "user", content: t.userText });
+    msgs.push(
+      t.view.kind === "answer"
+        ? { role: "assistant", content: t.view.text }
+        : { role: "assistant", content: `(Showed the visitor: ${t.caption.replace(/^→\s*/, "")}.)` },
+    );
+  }
+  return msgs.slice(-8);
+}
+
 function captionFor(view: View): string {
   switch (view.kind) {
     case "agent":
@@ -72,8 +90,14 @@ export default function Orchestrator() {
   // Which chunks the visitor has already seen, per project — so follow-ups don't
   // re-offer them. Conversation memory, kept in a ref (not render state).
   const seen = useRef<Map<string, Set<number>>>(new Map());
+  // Latest turns, readable inside async handlers without re-creating them.
+  const turnsRef = useRef(turns);
+  useEffect(() => {
+    turnsRef.current = turns;
+  }, [turns]);
 
-  const busy = revealingId !== null;
+  const [streaming, setStreaming] = useState(false);
+  const busy = revealingId !== null || streaming;
   const reduce = useReducedMotion();
 
   // Time-of-day is a client-only value; reading it post-mount is the correct use
@@ -154,38 +178,63 @@ export default function Orchestrator() {
         }
       }
 
-      // Tier 2: hand off to the grounded RAG endpoint. Show a "thinking…" beat
-      // while it works; on any failure, fall back to the suggestion UI.
+      // Tier 2: grounded, streamed answer with conversation memory. Show a
+      // "thinking…" beat, then stream tokens into the answer as they arrive.
+      const priorTurns = turnsRef.current;
+      const history = buildHistory(priorTurns);
+      // Ground/cite on the follow-up plus the last thing asked, so "what were the
+      // results?" inherits the prior topic.
+      const lastUser = priorTurns[priorTurns.length - 1]?.userText ?? "";
+      const citations = citationsFor(`${lastUser} ${trimmed}`.trim());
+
       const id = nextId.current++;
       setTurns((prev) => [
         ...prev,
         { id, userText: trimmed, view: null, caption: "thinking…", followUps: [] },
       ]);
-      setRevealingId(id);
+      setStreaming(true);
 
-      let view: View;
-      let caption: string;
+      const failWith = (caption: string) =>
+        setTurns((prev) =>
+          prev.map((t) =>
+            t.id === id ? { ...t, view: { kind: "fallback", q: trimmed, confidence: 0 }, caption } : t,
+          ),
+        );
+
       try {
         const res = await fetch("/api/ask", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ query: trimmed }),
+          body: JSON.stringify({ query: trimmed, history }),
         });
-        const data = await res.json();
-        if (data?.ok && data.answer) {
-          view = { kind: "answer", text: data.answer, citations: data.citations ?? [] };
-          caption = "grounded answer";
+        const contentType = res.headers.get("content-type") ?? "";
+        if (contentType.includes("application/json") || !res.body) {
+          failWith("no match"); // no key / provider error → suggestion UI
         } else {
-          view = { kind: "fallback", q: trimmed, confidence: 0 };
-          caption = "no match";
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let text = "";
+          let started = false;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            text += decoder.decode(value, { stream: true });
+            started = true;
+            setTurns((prev) =>
+              prev.map((t) =>
+                t.id === id
+                  ? { ...t, view: { kind: "answer", text, citations }, caption: "grounded answer" }
+                  : t,
+              ),
+            );
+          }
+          if (!started) failWith("no answer");
         }
       } catch {
-        view = { kind: "fallback", q: trimmed, confidence: 0 };
-        caption = "offline";
+        failWith("offline");
+      } finally {
+        setStreaming(false);
       }
-
-      setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, view, caption } : t)));
-      window.setTimeout(() => setRevealingId((cur) => (cur === id ? null : cur)), REVEAL_MS);
     },
     [busy, respond, followUpsFor],
   );

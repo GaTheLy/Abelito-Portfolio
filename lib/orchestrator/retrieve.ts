@@ -107,6 +107,23 @@ export function retrieve(query: string, k = 4): Retrieved[] {
   return rank(query, index, k) as Retrieved[];
 }
 
+// Deterministic citations for a grounded answer — the top relevant sources, one
+// per distinct project/section (so a comparison cites each). Computed on the
+// client so a streamed answer keeps its links without the model echoing them.
+export function citationsFor(query: string, max = 3): { label: string; target: NavTarget }[] {
+  const seen = new Set<string>();
+  return retrieve(query, 50)
+    .filter((r) => r.score >= 3)
+    .filter((r) => {
+      const entity = entityOf(r.target);
+      if (seen.has(entity)) return false;
+      seen.add(entity);
+      return true;
+    })
+    .slice(0, max)
+    .map((r) => ({ label: r.label, target: r.target }));
+}
+
 // A coarse identity for a target — two chunks of the same project share one, so
 // the caller can tell "one project, several blocks" from "two different projects".
 export function entityOf(target: NavTarget): string {
