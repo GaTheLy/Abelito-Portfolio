@@ -1,4 +1,4 @@
-import { retrieveContext } from "@/lib/orchestrator/retrieve";
+import { entityOf, retrieve, retrieveContext } from "@/lib/orchestrator/retrieve";
 
 // Tier-2 RAG: grounded, cited answers via Groq (open Llama models). Only reached
 // when Tier-1 retrieval isn't a confident direct match. Returns { ok:false } on
@@ -92,10 +92,27 @@ export async function POST(req: Request) {
   // Map the model's cited labels back to real navigation targets (drop any it
   // invented that aren't in the provided context).
   const usedLabels = Array.isArray(parsed.used) ? parsed.used.map(String) : [];
-  const citations = usedLabels
+  let citations = usedLabels
     .map((label) => context.find((c) => c.label === label))
     .filter((c): c is (typeof context)[number] => Boolean(c))
     .map((c) => ({ label: c.label, target: c.target }));
+
+  // Always give the visitor a way in: if the model cited nothing, link the top
+  // relevant sources anyway — one per distinct project/section so a comparison
+  // cites every project it drew from, not three chunks of the same one.
+  if (citations.length === 0) {
+    const seenEntity = new Set<string>();
+    citations = retrieve(query, 50)
+      .filter((r) => r.score >= 3)
+      .filter((r) => {
+        const e = entityOf(r.target);
+        if (seenEntity.has(e)) return false;
+        seenEntity.add(e);
+        return true;
+      })
+      .slice(0, 3)
+      .map((r) => ({ label: r.label, target: r.target }));
+  }
 
   return Response.json({ ok: true, answer, citations });
 }

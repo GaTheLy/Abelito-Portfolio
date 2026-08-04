@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { retrieve, NAV_THRESHOLD } from "@/lib/orchestrator/retrieve";
+import { retrieve, NAV_THRESHOLD, entityOf } from "@/lib/orchestrator/retrieve";
 import { getProject, overviewIndex, projects } from "@/lib/projects";
 import { blockLabel, blockQuestion } from "@/lib/blocks";
 import type { AgentId } from "@/lib/orchestrator/agents";
@@ -139,11 +139,19 @@ export default function Orchestrator() {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
 
-      // Tier 1: a strong retrieval match jumps straight there — instant, no LLM.
-      const top = retrieve(trimmed)[0];
+      // Tier 1: jump instantly only on a strong AND unambiguous match. If a
+      // second project/section ties at the top (e.g. "compare X and Y"), fall
+      // through to a grounded answer instead of jumping to one of them.
+      // Large k so a different-entity rival is visible even when the top project
+      // has many blocks (a portfolio has well under this many units total).
+      const results = retrieve(trimmed, 50);
+      const top = results[0];
       if (top && top.score >= NAV_THRESHOLD) {
-        respond(trimmed, top.target, `→ ${top.label.toLowerCase()}`, followUpsFor(top.target));
-        return;
+        const rival = results.find((r) => entityOf(r.target) !== entityOf(top.target));
+        if (!rival || top.score > rival.score) {
+          respond(trimmed, top.target, `→ ${top.label.toLowerCase()}`, followUpsFor(top.target));
+          return;
+        }
       }
 
       // Tier 2: hand off to the grounded RAG endpoint. Show a "thinking…" beat

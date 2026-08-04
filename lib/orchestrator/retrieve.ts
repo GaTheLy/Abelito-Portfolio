@@ -107,14 +107,57 @@ export function retrieve(query: string, k = 4): Retrieved[] {
   return rank(query, index, k) as Retrieved[];
 }
 
-// Top matches WITH their content text — the grounding context for Tier-2 RAG
-// (server-side). The LLM answers only from these excerpts.
+// A coarse identity for a target — two chunks of the same project share one, so
+// the caller can tell "one project, several blocks" from "two different projects".
+export function entityOf(target: NavTarget): string {
+  switch (target.kind) {
+    case "chunk":
+      return `project:${target.slug}`;
+    case "agent":
+      return `agent:${target.agentId}`;
+    case "connect":
+      return "connect";
+  }
+}
+
+// Grounding context for Tier-2 RAG (server-side). When a project is implicated,
+// its WHOLE case study is included — so a question like "how did it do?" sees the
+// results block even though the query never lexically hit it.
 export function retrieveContext(
   query: string,
-  k = 6,
+  k = 8,
 ): { label: string; target: NavTarget; text: string }[] {
-  return rank(query, index, k).map((r) => {
-    const unit = index.find((u) => u.label === r.label);
-    return { label: r.label, target: r.target as NavTarget, text: unit ? unit.text : "" };
-  });
+  const ranked = rank(query, index, index.length);
+
+  // Projects with a real (non-incidental) match → include every block of theirs.
+  const projScore = new Map<string, number>();
+  for (const r of ranked) {
+    if (r.target.kind === "chunk" && r.score >= 3) {
+      projScore.set(r.target.slug, Math.max(projScore.get(r.target.slug) ?? 0, r.score));
+    }
+  }
+  const topProjects = [...projScore.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([slug]) => slug);
+
+  const seen = new Set<string>();
+  const out: { label: string; target: NavTarget; text: string }[] = [];
+  const push = (u: Unit) => {
+    if (seen.has(u.label)) return;
+    seen.add(u.label);
+    out.push({ label: u.label, target: u.target as NavTarget, text: u.text });
+  };
+
+  for (const slug of topProjects) {
+    for (const u of index) {
+      if (u.target.kind === "chunk" && u.target.slug === slug) push(u);
+    }
+  }
+  // Plus the top non-chunk matches (sections) and any strong leftovers.
+  for (const r of ranked.slice(0, k)) {
+    const u = index.find((x) => x.label === r.label);
+    if (u) push(u);
+  }
+  return out;
 }
