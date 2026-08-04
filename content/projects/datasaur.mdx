@@ -1,56 +1,59 @@
 ---
-# TODO_ABELITO: every value below is placeholder — replace with the real Datasaur case study.
+# TODO_ABELITO: DEMO content — coherent placeholder to showcase the chat, NOT real
+# claims about your work. Replace with the real Datasaur story in M4.
 slug: datasaur
 title: Datasaur
-tagline: Placeholder tagline for the flagship case study.
+tagline: An LLM-assisted auto-labeling assistant for NLP annotation teams.
 agent: builder
 blocks:
   - type: overview
     body: >
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-      commodo consequat.
+      Datasaur is an NLP data-labeling platform where teams annotate text to
+      train language models. This case study covers the auto-labeling assistant:
+      a feature that pre-annotates each document so human reviewers correct
+      suggestions instead of labeling from scratch. It shipped as the default
+      workflow for named-entity and classification projects.
   - type: role
     body: >
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua.
+      I led the machine-learning engineering for the assistant — choosing the
+      pre-labeling model, building the confidence router that decides what a
+      human sees, wiring the reviewer feedback loop, and rolling it out to the
+      first enterprise customers.
   - type: problem
     body: >
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua.
+      Manual annotation was the bottleneck. Labeling a mid-size entity dataset
+      took teams several weeks, and inter-annotator agreement drifted as fatigue
+      set in — which slowed every downstream model that depended on the data.
   - type: approach
     body: >
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua.
+      An LLM pre-labels every document, then a confidence router sends only the
+      uncertain spans to human reviewers. Each correction is stored as a
+      few-shot example, so the assistant gets sharper on a given project without
+      any retraining.
   - type: architecture
     image: "TODO_ABELITO: architecture diagram"
-    caption: "TODO_ABELITO: diagram caption."
+    caption: "Pre-labeling service, confidence router, and the reviewer feedback loop."
   - type: results
     metrics:
-      - label: Placeholder metric
-        value: "92%"
-        delta: "+40%"
-      - label: Placeholder metric
-        value: "3x"
-      - label: Placeholder metric
-        value: "120ms"
-        delta: "−35%"
+      - label: Labeling throughput
+        value: "3.2×"
+      - label: Annotation accuracy
+        value: "94%"
+        delta: "+11 pts"
+      - label: Reviewer time saved
+        value: "60%"
   - type: stack
-    tags: [TypeScript, Python, PyTorch, Next.js, Postgres]
+    tags: [TypeScript, Python, PyTorch, spaCy, Next.js, PostgreSQL]
   - type: timeline
     entries:
       - date: "2024 Q1"
-        text: >
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        text: "Prototyped pre-labeling on a named-entity dataset."
       - date: "2024 Q3"
-        text: >
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        text: "Shipped the confidence router and reviewer feedback loop."
       - date: "2025 Q1"
-        text: >
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        text: "Rolled the assistant out to the first enterprise teams."
   - type: retrospective
     quote: >
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua.
+      The win wasn’t the model — it was designing the human-in-the-loop so
+      corrections were cheap to make and compounded on every later document.
 ---
