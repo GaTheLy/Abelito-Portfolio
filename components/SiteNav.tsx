@@ -4,13 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-// Persistent, minimal nav. These are real routing links (revision #1).
-// /origin isn't listed — it stays reachable via the orchestrator (prompt) and
-// the "open ↗" on its embedded response.
+// Persistent, minimal nav — real routing links.
 const NAV = [
   { href: "/builder", label: "builder" },
   { href: "/creator", label: "creator" },
   { href: "/hobbyist", label: "hobbyist" },
+  { href: "/origin", label: "origin" },
   { href: "/connect", label: "connect" },
 ];
 
