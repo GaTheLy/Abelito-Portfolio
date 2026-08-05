@@ -27,10 +27,19 @@ export const MIN_SCORE = 2;
 // Below this the caller hands off to Tier-2 RAG for a grounded answer.
 export const NAV_THRESHOLD = 5;
 
+// Common English function words that shouldn't drive matching — kept broad so an
+// incidental word like "was" in a body can't outweigh a real name/label match.
+// (Deliberately excludes section keywords like "who"/"about".)
 const STOP = new Set([
   "the", "a", "an", "of", "to", "is", "are", "am", "in", "on", "at", "for",
   "and", "or", "me", "i", "my", "s", "do", "does", "did", "can", "could",
   "would", "please", "it", "this", "that", "with", "from", "as", "be",
+  "was", "were", "been", "being", "has", "have", "had", "will", "shall",
+  "should", "may", "might", "must", "which", "what", "whose", "how", "why",
+  "when", "where", "than", "then", "more", "most", "same", "so", "very",
+  "just", "you", "your", "yours", "he", "she", "him", "his", "her", "they",
+  "them", "their", "we", "us", "our", "but", "if", "not", "no", "all", "any",
+  "by", "up", "out",
 ]);
 
 export function tokenize(text: string): string[] {

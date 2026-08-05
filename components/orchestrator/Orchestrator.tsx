@@ -62,6 +62,11 @@ function buildHistory(turns: Turn[]): ChatMsg[] {
   return msgs.slice(-8);
 }
 
+// Wording that means "synthesize an answer", not "jump" — comparisons and
+// back-references to the conversation. Tested against the raw prompt.
+const CONVERSATIONAL =
+  /\b(compar\w*|vs|versus|differ\w*|better|worse|between|instead|rather|those|these|same|his|her|their|they|them|both)\b/i;
+
 function captionFor(view: View): string {
   switch (view.kind) {
     case "agent":
@@ -163,19 +168,21 @@ export default function Orchestrator() {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
 
-      // Tier 1: jump instantly only on a strong AND unambiguous match. If a
-      // second project/section ties at the top (e.g. "compare X and Y"), fall
-      // through to a grounded answer instead of jumping to one of them.
-      // Large k so a different-entity rival is visible even when the top project
-      // has many blocks (a portfolio has well under this many units total).
+      // Tier 1: jump instantly only for an unambiguous LOOKUP — exactly one
+      // strongly-matched project/section, and no comparison/back-reference
+      // wording. Two strong projects ("Datasaur vs Manna") or conversational
+      // phrasing ("how is that different…") means answer, not jump.
       const results = retrieve(trimmed, 50);
+      const bestByEntity = new Map<string, number>();
+      for (const r of results) {
+        const e = entityOf(r.target);
+        if (r.score > (bestByEntity.get(e) ?? 0)) bestByEntity.set(e, r.score);
+      }
+      const strongEntities = [...bestByEntity.values()].filter((s) => s >= NAV_THRESHOLD).length;
       const top = results[0];
-      if (top && top.score >= NAV_THRESHOLD) {
-        const rival = results.find((r) => entityOf(r.target) !== entityOf(top.target));
-        if (!rival || top.score > rival.score) {
-          respond(trimmed, top.target, `→ ${top.label.toLowerCase()}`, followUpsFor(top.target));
-          return;
-        }
+      if (top && top.score >= NAV_THRESHOLD && strongEntities === 1 && !CONVERSATIONAL.test(trimmed)) {
+        respond(trimmed, top.target, `→ ${top.label.toLowerCase()}`, followUpsFor(top.target));
+        return;
       }
 
       // Tier 2: grounded, streamed answer with conversation memory. Show a
