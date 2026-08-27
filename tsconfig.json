@@ -13,7 +13,9 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    // Velite's generated .velite/index.d.ts imports velite.config.ts by extension.
+    // content/ and lib/ import each other with explicit .ts extensions so the
+    // pure data + logic layer runs under bare `node --test` with no loader and
+    // no test framework. See lib/site.test.ts.
     "allowImportingTsExtensions": true,
     "plugins": [
       {
@@ -21,8 +23,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "#content": ["./.velite"]
+      "@/*": ["./*"]
     }
   },
   "include": [
@@ -33,5 +34,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "**/*.check.ts"]
+  "exclude": ["node_modules"]
 }
