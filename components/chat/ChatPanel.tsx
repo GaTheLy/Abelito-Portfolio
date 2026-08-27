@@ -14,7 +14,7 @@ import ChatInput from "./ChatInput";
  * Mounted from Shell (and therefore the root layout), so it never remounts —
  * the conversation survives navigation.
  */
-export default function ChatPanel() {
+export default function ChatPanel({ docCount }: { docCount: number }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
@@ -29,7 +29,7 @@ export default function ChatPanel() {
           <span className="text-[12.5px] font-semibold text-ink">Ask me anything</span>
         </div>
         <span className="font-mono text-[9.5px] tracking-[0.06em] text-ink-faint uppercase">
-          Grounded in 40+ docs
+          Grounded in {docCount} docs
         </span>
       </div>
 

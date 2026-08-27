@@ -14,7 +14,15 @@ import { useChat } from "./chat/context";
  *
  * Pages are passed through as `children` and stay server components.
  */
-export default function Shell({ children }: { children: React.ReactNode }) {
+export default function Shell({
+  children,
+  docCount,
+}: {
+  children: React.ReactNode;
+  /** Derived on the server from content/corpus.ts — the chat header states the
+   *  real number rather than a hardcoded claim. */
+  docCount: number;
+}) {
   const pathname = usePathname();
   const { answerSeq } = useChat();
   const scrollRef = useRef<HTMLElement>(null);
@@ -47,7 +55,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
 
-        <ChatPanel />
+        <ChatPanel docCount={docCount} />
       </div>
 
       <MobileSheet />
