@@ -25,14 +25,17 @@ export default function ConnectPage() {
         <div className="min-w-0">
           <dl className="m-0 border-t border-divider">
             {contacts.map((row) => (
+              // A <div> inside a <dl> may contain ONLY dt/dd — the tag used to
+              // sit beside them as a bare <span>, which is invalid markup. It
+              // now lives inside the <dd>, which looks identical.
               <div
                 key={row.key}
-                className="grid grid-cols-[76px_1fr_auto] items-center gap-4 lg:grid-cols-[104px_1fr_auto] border-b border-divider py-3.5"
+                className="grid grid-cols-[76px_1fr] items-center gap-4 border-b border-divider py-3.5 lg:grid-cols-[104px_1fr]"
               >
                 <dt className="font-mono text-[9.5px] tracking-[0.1em] text-ink-label uppercase">
                   {row.key}
                 </dt>
-                <dd className="m-0 min-w-0 text-[14px] text-ink">
+                <dd className="m-0 flex min-w-0 items-center justify-between gap-4 text-[14px] text-ink">
                   {row.href ? (
                     <a
                       href={row.href}
@@ -44,12 +47,12 @@ export default function ConnectPage() {
                       {row.value}
                     </a>
                   ) : (
-                    row.value
+                    <span className="break-words">{row.value}</span>
                   )}
+                  <span className="flex-none font-mono text-[9px] tracking-[0.08em] text-ink-faint uppercase">
+                    {row.tag}
+                  </span>
                 </dd>
-                <span className="font-mono text-[9px] tracking-[0.08em] text-ink-faint uppercase">
-                  {row.tag}
-                </span>
               </div>
             ))}
           </dl>
