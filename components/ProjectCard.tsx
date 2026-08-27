@@ -1,39 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { useContext } from "react";
-import { overviewIndex, type Project } from "@/lib/projects";
-import { OrchestratorContext } from "./orchestrator/context";
+import { useRouter } from "next/navigation";
+import type { Project } from "@/content/projects";
+import type { TopicId } from "@/content/answers";
+import { useChat } from "@/components/chat/context";
 
-// Dual behaviour: inside the conversation it opens the case study as the next
-// response (embed); on a real page it's a normal route link. Same look either way.
-export default function ProjectCard({ project }: { project: Project }) {
-  const api = useContext(OrchestratorContext);
-  const className =
-    "block w-full rounded-md border border-border border-l-2 border-l-builder bg-card p-5 text-left transition-colors hover:border-foreground/30";
-  const inner = (
+const SHELL =
+  "flex flex-col gap-2.5 rounded-lg border border-divider bg-raised px-[21px] py-5 text-left transition-colors hover:border-green";
+
+/**
+ * One card, two surfaces. On Home it shows the metric and a short stack line;
+ * on /projects it shows the derived CTA. Either way the destination comes from
+ * the record: a case study if `deep`, otherwise a chat answer (or /work).
+ */
+export default function ProjectCard({
+  project,
+  variant = "index",
+}: {
+  project: Project;
+  variant?: "feature" | "index";
+}) {
+  const router = useRouter();
+  const { ask } = useChat();
+
+  const body = (
     <>
-      <h3 className="font-medium tracking-tight">{project.title}</h3>
-      <p className="mt-1 text-sm text-muted">{project.tagline}</p>
+      <div className="flex items-start justify-between gap-3">
+        <span className="t-card-title text-ink">{project.name}</span>
+        <span
+          className={`mt-0.5 flex-none font-mono text-[9.5px] tracking-[0.08em] uppercase ${
+            project.deep ? "text-green" : "text-ink-faint"
+          }`}
+        >
+          {project.badge}
+        </span>
+      </div>
+
+      {variant === "index" ? (
+        <span className="font-mono text-[9.5px] tracking-[0.08em] text-ink-faint uppercase">
+          {project.meta}
+        </span>
+      ) : null}
+
+      <p className="m-0 text-[13.5px]/[1.55] text-ink-body">{project.blurb}</p>
+
+      {variant === "index" ? (
+        <>
+          <span className="font-mono text-[9.5px]/[1.5] text-ink-faint">
+            {project.stack.join(" · ")}
+          </span>
+          <span className="mt-0.5 font-mono text-[10px] tracking-[0.06em] text-ink-label uppercase">
+            {project.metric} · {project.deep ? "Read the case study →" : "Ask the chat →"}
+          </span>
+        </>
+      ) : (
+        <div className="mt-0.5 flex items-center justify-between gap-3 font-mono text-[10px] tracking-[0.04em] text-ink-label uppercase">
+          <span>{project.metric}</span>
+          <span className="text-right">{project.stack.slice(0, 3).join(" · ")}</span>
+        </div>
+      )}
     </>
   );
 
-  if (api) {
+  // A real link when there's a real destination — right-click, middle-click and
+  // "open in new tab" all work, which they wouldn't on a button.
+  if (project.deep) {
     return (
-      <button
-        type="button"
-        onClick={() =>
-          api.open({ kind: "chunk", slug: project.slug, index: overviewIndex(project) }, project.title)
-        }
-        className={className}
-      >
-        {inner}
-      </button>
+      <Link href={`/projects/${project.slug}`} className={SHELL}>
+        {body}
+      </Link>
     );
   }
+
   return (
-    <Link href={`/builder/${project.slug}`} className={className}>
-      {inner}
-    </Link>
+    <button
+      type="button"
+      className={SHELL}
+      onClick={() =>
+        project.ask === "work" ? router.push("/work") : ask((project.ask ?? "fallback") as TopicId)
+      }
+    >
+      {body}
+    </button>
   );
 }
