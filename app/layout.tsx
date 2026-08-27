@@ -1,42 +1,55 @@
 import type { Metadata } from "next";
-import { Inter, Fraunces, Geist_Mono } from "next/font/google";
+import { Newsreader, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import SiteNav from "@/components/SiteNav";
+import Shell from "@/components/Shell";
+import { ChatProvider } from "@/components/chat/context";
 
-// UI chrome + agent pages.
-const inter = Inter({ variable: "--font-sans-var", subsets: ["latin"] });
-// Reserved for /origin only — signals "this is personal, not a system talking".
-const fraunces = Fraunces({
-  variable: "--font-voice-var",
+// Editorial voice — headlines, standfirsts, pull-quotes, lessons. This is what
+// makes the site read as a publication rather than a SaaS page.
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
+  weight: ["300", "400"],
   style: ["normal", "italic"],
+  display: "swap",
 });
-// Routing readout + small system chrome.
-const geistMono = Geist_Mono({ variable: "--font-mono-var", subsets: ["latin"] });
+
+// UI and body copy.
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+// Labels, metadata, code, all-caps eyebrows.
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  // Production origin — resolves canonical/OG URLs correctly once deployed.
   metadataBase: new URL("https://abelitovisese.com"),
-  // Name + role are structural (real); tagline is placeholder.
-  title: "Abelito Visese — AI/ML Engineer",
-  // TODO_ABELITO: replace with a real one-line description for SEO / social.
-  description: "Portfolio of Abelito Visese. Ask the orchestrator what you want to see.",
+  title: {
+    default: "Abelito Visese — AI Engineer",
+    template: "%s — Abelito Visese",
+  },
+  description:
+    "AI Engineer at Datasaur. Retrieval systems, agent tooling and computer-vision pipelines — read the work, or ask the chat anything about it.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${fraunces.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${newsreader.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
-      {/* Fixed-viewport shell: the nav stays put and each view scrolls inside
-          <main>, so the chat composer (docked at the bottom of the home view)
-          is always reachable without scrolling the page. */}
-      <body className="flex h-dvh flex-col overflow-hidden">
-        <SiteNav />
-        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+      <body>
+        <ChatProvider>
+          <Shell>{children}</Shell>
+        </ChatProvider>
       </body>
     </html>
   );

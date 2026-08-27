@@ -1,86 +1,291 @@
 @import "tailwindcss";
 
-/* ── Design tokens (M0) ─────────────────────────────────────────────────────
-   Single source of truth. No component may use a raw hex or one-off px value;
-   everything draws from the tokens below via Tailwind utilities
-   (bg-builder, text-foreground, rounded-md, font-voice, …).
-   ──────────────────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens — the single source of truth.
+
+   Every value here is lifted verbatim from README.md §Design tokens, which was
+   in turn measured off the design files in reference/. No component may use a
+   raw hex; go through these utilities (bg-canvas, text-ink-faint, …).
+
+   This design commits to one warm light palette. There is deliberately no dark
+   variant — the whole thing reads as printed paper, and a dark inversion would
+   be a different design, not a theme of this one.
+   ──────────────────────────────────────────────────────────────────────────── */
 
 @theme {
-  /* Brand accents — LOCKED palette, exact order. Constant across themes.
-     Used as solid fills (with white/cream text) and thin rules, never as
-     low-contrast text directly on the page background. */
-  --color-builder: #5e0006; /* oxblood */
-  --color-creator: #9b0f06; /* red */
-  --color-hobbyist: #d53e0f; /* orange-red */
-  --color-cream: #eed9b9; /* warm neutral "paper" */
+  /* Surfaces */
+  --color-canvas: #f1eee6; /* app background, chat input bar */
+  --color-surface: #f7f5ef; /* chat panel background */
+  --color-raised: #fbfaf6; /* cards, top bar */
+  --color-raised-alt: #fffdf9; /* inputs, chips */
+  --color-raised-alt2: #fdfcf8; /* inner cards */
+  --color-well: #ede9df; /* home hero column, IN FOCUS, image-slot wells */
+  --color-bar: #f4f1e7; /* table headers, code caption bars */
 
-  /* Radius scale — flat, restrained. */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.875rem;
+  /* Lines */
+  --color-divider: #ddd8ca; /* all 1px borders */
+  --color-divider-soft: #ede9df; /* table row dividers */
+  --color-border-input: #cfc9b8; /* inputs, unselected chips */
+  --color-border-faint: #e6e1d4; /* inner chip borders */
 
-  /* Spacing intentionally left to Tailwind's default scale — it is already a
-     consistent, token-based scale; no parallel one is invented here. */
+  /* Ink */
+  --color-ink: #17160f; /* primary text, dark bubbles, code background */
+  --color-ink-body: #3d3a31; /* body copy */
+  --color-ink-muted: #514c42; /* secondary copy */
+  --color-ink-label: #6e6a5c; /* section labels */
+  --color-ink-faint: #8b8574; /* meta, captions */
+  --color-ink-faintest: #b3ac9a; /* placeholder labels, arrows */
+
+  /* Accents */
+  --color-green: #1e4d3b; /* primary action, metrics, active nav, rules */
+  --color-green-dark: #163a2c; /* button hover */
+  --color-green-tint: #eaf0ec; /* highlighted table rows, emphasis nodes */
+  --color-green-ink: #20301f; /* text on green tint */
+  --color-vermilion: #d64a2b; /* "now" markers, current-phase dots */
+
+  /* Amber — draft / needs-input callouts */
+  --color-amber-border: #c9b96b;
+  --color-amber-fill: #fff6d8;
+  --color-amber-ink: #8a7a32;
+  --color-amber-ink-deep: #5c5220;
+
+  /* Code block syntax */
+  --color-code-fg: #c9cfc6;
+  --color-code-comment: #8b9a86;
+  --color-code-keyword: #c9b96b;
+  --color-code-string: #a3c48e;
+
+  /* Type families — wired to next/font in app/layout.tsx */
+  --font-editorial: var(--font-newsreader), Georgia, serif;
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Radii — README §Spacing / shape */
+  --radius-xs: 3px; /* inline code, logo, small chips */
+  --radius-sm: 4px; /* diagram nodes, stack chips */
+  --radius-nav: 5px; /* nav items */
+  --radius-md: 7px;
+  --radius-lg: 8px; /* cards, panels */
+  --radius-xl: 10px; /* input bars, controls panel */
+  --radius-pill: 100px;
 }
 
-/* Semantic neutrals as runtime variables so they can flip per theme.
-   Light (warm) is the primary theme. */
-:root {
-  --background: #fbf8f3;
-  --foreground: #1a1310;
-  --muted: #756a5e;
-  --border: #e6dbcb;
-  --card: #ffffff;
-}
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #17120e;
-    --foreground: #f1e9dc;
-    --muted: #a99c8c;
-    --border: #322a21;
-    --card: #201914;
-  }
-}
-
-/* Expose the runtime neutrals + font variables to Tailwind so utilities like
-   bg-background / text-muted / border-border / font-voice exist. */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-card: var(--card);
-
-  --font-sans: var(--font-sans-var);
-  --font-voice: var(--font-voice-var);
-  --font-mono: var(--font-mono-var);
+html {
+  background: var(--color-canvas);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans-var), ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Accessible keyboard focus for every interactive element. Inputs opt out of
-   the browser default (outline-none) for styling, so this restores a visible,
-   theme-aware indicator — shown only for keyboard/programmatic focus. Unlayered
-   so it wins over the outline-none utility. */
+/* README: "Always text-wrap: pretty on prose." */
+p,
+li,
+blockquote,
+h1,
+h2,
+h3 {
+  text-wrap: pretty;
+}
+
+/* Accessibility — README open item 7. A visible, high-contrast focus ring on
+   every interactive element. Never remove this without a replacement. */
 :focus-visible {
-  outline: 2px solid var(--foreground);
+  outline: 2px solid var(--color-green);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
-/* Respect users who prefer reduced motion — neutralize animations/transitions. */
+/* Custom scrollbars — 9px, thumb #D5CFBE, transparent track. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d5cfbe transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: #d5cfbe;
+  border-radius: 100px;
+}
+
+/* ── Shell layout ─────────────────────────────────────────────────────────────
+   The single most important behaviour in the design: the chat panel is 704px on
+   Home (full mode, with a transcript) and 340px everywhere else (rail mode).
+
+   Three tiers, so the desktop design is never compromised:
+     ≥1560px   exactly as designed
+     1000–1559 same two columns, chat clamped so the content column survives
+     <1000     single column; the panel becomes a bottom sheet
+
+   The width change is a plain CSS transition on flex-basis. Framer Motion is
+   reserved for the interactions CSS genuinely can't do well (drag-to-dismiss,
+   streamed block entrance) — paying a library for a width tween would be silly.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.shell-panel {
+  flex: 0 0 340px;
+  transition: flex-basis 0.38s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.shell-body[data-mode="full"] .shell-panel {
+  flex-basis: 704px;
+}
+
+@media (max-width: 1559px) {
+  .shell-body[data-mode="full"] .shell-panel {
+    flex-basis: min(704px, 42vw);
+  }
+}
+
+/* Below Tailwind's `lg` the panel is replaced by the mobile sheet. Keeping the
+   two in step means components can use plain `lg:` prefixes. */
+@media (max-width: 1023px) {
+  .shell-panel {
+    display: none;
+  }
+}
+
+/* Skip link — visually hidden until focused. README open item 7. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 50;
+  border-radius: var(--radius-nav);
+  background: var(--color-green);
+  padding: 9px 14px;
+  font: 500 12.5px var(--font-sans);
+  color: var(--color-surface);
+  transition: top 0.18s ease;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ── Motion — README §Motion ──────────────────────────────────────────────── */
+
+@keyframes fu {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cr {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@utility animate-rise {
+  animation: fu 0.34s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@utility animate-caret {
+  animation: cr 1.1s steps(1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
-  ::before,
-  ::after {
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
+}
+
+/* ── Type roles — README §Type ────────────────────────────────────────────────
+   Named after the role, not the size, so a component reads as intent. The
+   fractional px values are deliberate; they came off the design files. */
+
+@utility t-h1-home {
+  /* 56px is the design size; clamp keeps it from swallowing a phone screen
+     without needing a breakpoint that has to stay in sync with the shell. */
+  font: 300 clamp(38px, 4.4vw, 56px) / 1.03 var(--font-editorial);
+  letter-spacing: -0.032em;
+}
+@utility t-h1-case {
+  font: 300 52px/1.04 var(--font-editorial);
+  letter-spacing: -0.03em;
+}
+@utility t-h1-page {
+  font: 300 46px/1.06 var(--font-editorial);
+  letter-spacing: -0.028em;
+}
+@utility t-h2 {
+  font: 300 34px/1.15 var(--font-editorial);
+  letter-spacing: -0.025em;
+}
+@utility t-essay {
+  font: 400 24px/1.25 var(--font-editorial);
+  letter-spacing: -0.02em;
+}
+@utility t-standfirst {
+  font: 400 17px/1.6 var(--font-editorial);
+}
+@utility t-quote {
+  font: 400 17px/1.65 var(--font-editorial);
+}
+@utility t-quote-sm {
+  font: 400 14.5px/1.6 var(--font-editorial);
+}
+@utility t-card-title {
+  font: 600 16px var(--font-sans);
+  letter-spacing: -0.015em;
+}
+@utility t-body {
+  font: 400 15px/1.68 var(--font-sans);
+}
+@utility t-body-sm {
+  font: 400 13.5px/1.6 var(--font-sans);
+}
+@utility t-ui {
+  font: 500 12.5px var(--font-sans);
+}
+@utility t-label {
+  font: 700 9.5px var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+@utility t-meta {
+  font: 400 10px var(--font-mono);
+  letter-spacing: 0.06em;
+}
+@utility t-meta-wide {
+  font: 400 10.5px var(--font-mono);
+  letter-spacing: 0.1em;
+}
+@utility t-metric {
+  font: 400 30px/1 var(--font-sans);
+  letter-spacing: -0.035em;
+}
+@utility t-metric-sm {
+  font: 400 26px/1 var(--font-sans);
+  letter-spacing: -0.035em;
+}
+@utility t-chip {
+  font: 500 11.5px var(--font-sans);
+}
+@utility t-code {
+  font: 400 11.5px/1.75 var(--font-mono);
 }
