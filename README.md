@@ -61,7 +61,7 @@ dotted versions and the catalogue changes.
 | | |
 |---|---|
 | **Framework** | Next.js 16 (App Router) · React 19 · TypeScript strict |
-| **Styling** | Tailwind v4. Every design token lives in `app/globals.css` — no raw hex in components |
+| **Styling** | Tailwind v4. Every design token lives in `app/globals.css` — no raw hex in components. Five ink/accent tokens are darkened from the spec to clear WCAG AA on 9–10.5px labels; axe reports zero A/AA violations across all routes |
 | **Motion** | CSS for the two keyframes; Framer Motion only for streamed-block entrance and the mobile sheet's drag-to-dismiss |
 | **Diagrams** | `mermaid`, themed to the palette, dynamically imported |
 | **AI** | AI SDK v7 → Vercel AI Gateway → Claude |

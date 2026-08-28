@@ -3,9 +3,16 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    Design tokens — the single source of truth.
 
-   Every value here is lifted verbatim from README.md §Design tokens, which was
-   in turn measured off the design files in reference/. No component may use a
-   raw hex; go through these utilities (bg-canvas, text-ink-faint, …).
+   Values come from README.md §Design tokens (measured off the Claude Design
+   prototypes). No component may use a raw hex — go through these utilities
+   (bg-canvas, text-ink-faint, …).
+
+   FIVE deliberately deviate from the spec: ink-faint, ink-faintest, ink-label,
+   vermilion and amber-ink are darkened. The spec's values put 9–10.5px mono
+   labels between 1.86:1 and 4.47:1 against their surfaces, and WCAG AA needs
+   4.5:1 for text that small. Each is the minimum darkening that clears it —
+   see the note on each. axe reports zero WCAG 2.1 A/AA violations across all
+   eight routes; keep it that way.
 
    This design commits to one warm light palette. There is deliberately no dark
    variant — the whole thing reads as printed paper, and a dark inversion would
@@ -32,21 +39,35 @@
   --color-ink: #17160f; /* primary text, dark bubbles, code background */
   --color-ink-body: #3d3a31; /* body copy */
   --color-ink-muted: #514c42; /* secondary copy */
-  --color-ink-label: #6e6a5c; /* section labels */
-  --color-ink-faint: #8b8574; /* meta, captions */
-  --color-ink-faintest: #b3ac9a; /* placeholder labels, arrows */
+  /* 4.47:1 on the tinted band — a hair under AA. One step darker clears it. */
+  --color-ink-label: #6d695c; /* section labels */
+  /* The spec's #8B8574 managed only 3.17:1 on canvas — WCAG AA wants 4.5:1 for
+     text this small, and this token carries the 9–10.5px mono eyebrows, meta
+     lines and captions. Darkened to clear 4.5:1 on all four surfaces it sits on
+     (canvas 4.72, surface 5.02, well 4.51, raised 5.24).
+     Side effect worth knowing: at this cream's luminance there is no room to
+     pass AA and stay lighter than --color-ink-label, so those two are now
+     effectively one step rather than two. */
+  --color-ink-faint: #6f6958; /* meta, captions */
+  /* The spec's #B3AC9A was 1.86:1 on the tinted band — the worst failure in the
+     palette, on 9px labels that carry real information ("TikTok embed",
+     "Rendered"). Visible cost of the fix: in the mermaid caption bar the right
+     status label no longer sits a step lighter than the left one. */
+  --color-ink-faintest: #6d695e; /* placeholder labels, arrows */
 
   /* Accents */
   --color-green: #1e4d3b; /* primary action, metrics, active nav, rules */
   --color-green-dark: #163a2c; /* button hover */
   --color-green-tint: #eaf0ec; /* highlighted table rows, emphasis nodes */
   --color-green-ink: #20301f; /* text on green tint */
-  --color-vermilion: #d64a2b; /* "now" markers, current-phase dots */
+  /* Deepened from the spec's #D64A2B (3.55:1) so the 9px "NOW" labels clear
+     AA. Still the same rust accent; the shift is ~13% and reads identically. */
+  --color-vermilion: #ba4025; /* "now" markers, current-phase dots */
 
   /* Amber — draft / needs-input callouts */
   --color-amber-border: #c9b96b;
   --color-amber-fill: #fff6d8;
-  --color-amber-ink: #8a7a32;
+  --color-amber-ink: #7f702e; /* darkened from #8A7A32 — 3.96:1 on amber fill */
   --color-amber-ink-deep: #5c5220;
 
   /* Code block syntax */
