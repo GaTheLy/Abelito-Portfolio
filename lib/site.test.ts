@@ -6,6 +6,7 @@ import { answerBlocks } from "../content/answer-blocks.ts";
 import { caseStudies, railContext } from "../content/case-studies.ts";
 import { projects, selectProjects, caseStudySlugs } from "../content/projects.ts";
 import { blockSchema } from "./blocks.ts";
+import { parseMediumFeed } from "./medium.ts";
 
 // Everything with a branch, a loop or a rule lives here. Runs under bare
 // `node --test` — content/ and lib/ deliberately use relative imports so no
@@ -220,4 +221,51 @@ test("every 'same obsession' link lands on something specific", () => {
       assert.equal(found.length, 1, `${study.slug}: "?q=${query}" matched ${found.length}`);
     }
   }
+});
+
+// ── Medium feed ─────────────────────────────────────────────────────────────
+
+const FEED = `<?xml version="1.0"?><rss><channel>
+<item>
+  <title><![CDATA[Love.]]></title>
+  <link>https://abelitovisese.medium.com/love-03112fc84578?source=rss-abc</link>
+  <pubDate>Sun, 20 Jul 2025 12:01:53 GMT</pubDate>
+  <category><![CDATA[poem]]></category>
+  <category><![CDATA[love]]></category>
+  <content:encoded><![CDATA[<p>For me, love isn&#39;t about gifts. It is the way my eyes glow. And more besides, at considerable length, going well past any reasonable excerpt boundary so the trimming has something to do.</p>]]></content:encoded>
+</item>
+<item>
+  <title><![CDATA[Only a title]]></title>
+  <link>https://abelitovisese.medium.com/x-1</link>
+</item>
+<item><title><![CDATA[No link, must be dropped]]></title></item>
+</channel></rss>`;
+
+test("medium feed parses titles, tags, dates and normalised urls", () => {
+  const posts = parseMediumFeed(FEED);
+  // The third item has no link and must not survive.
+  assert.equal(posts.length, 2);
+
+  const [love] = posts;
+  assert.equal(love.title, "Love.");
+  // Tracking params stripped, subdomain rewritten to the canonical profile form.
+  assert.equal(love.url, "https://medium.com/@abelitovisese/love-03112fc84578");
+  assert.equal(love.date.slice(0, 10), "2025-07-20");
+  assert.deepEqual(love.tags, ["poem", "love"]);
+  assert.ok(love.excerpt.startsWith("For me, love isn't about gifts."), love.excerpt);
+  assert.ok(!love.excerpt.includes("<p>"), "html must be stripped");
+  assert.ok(love.excerpt.length <= 191, "excerpt must be trimmed");
+});
+
+test("medium parser survives a missing date and missing tags", () => {
+  const [, sparse] = parseMediumFeed(FEED);
+  assert.equal(sparse.title, "Only a title");
+  assert.equal(sparse.date, "");
+  assert.deepEqual(sparse.tags, []);
+  assert.equal(sparse.excerpt, "");
+});
+
+test("medium parser returns empty for junk rather than throwing", () => {
+  assert.deepEqual(parseMediumFeed(""), []);
+  assert.deepEqual(parseMediumFeed("<rss><channel></channel></rss>"), []);
 });
