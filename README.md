@@ -45,9 +45,20 @@ Re-run the last line when the local token expires; deployed environments refresh
 it automatically. As an alternative for CI or non-Vercel hosting, set
 `AI_GATEWAY_API_KEY` instead.
 
-`AI_MODEL` overrides the model (default `anthropic/claude-haiku-4.5`). Confirm
-the current slug with `npm run models` rather than guessing — gateway ids use
-dotted versions and the catalogue changes.
+`AI_MODEL` overrides the model (default `zai/glm-5.3-flash`). Confirm current
+slugs with `npm run models` rather than guessing — gateway ids use dotted
+versions and the catalogue changes.
+
+> **The free tier will not serve Anthropic models.** A call to
+> `anthropic/claude-haiku-4.5` returns 403 *"Free tier users do not have access
+> to this model"*. Add AI Gateway credits if you want Claude, which is the
+> stronger option for schema-constrained block output.
+
+> **The OIDC token expires in ~24h**, so local dev needs
+> `vercel env pull .env.local` again most days — the chat falls back to the
+> authored answers with an honest note until you do. Deployed environments
+> refresh it automatically. To avoid the re-pull entirely, set a static
+> `AI_GATEWAY_API_KEY` in `.env.local` instead; it does not expire.
 
 > **Before going public:** `/api/ask` is an unauthenticated endpoint. Set a
 > monthly budget cap and a per-user rate limit in Vercel → AI Gateway. The route

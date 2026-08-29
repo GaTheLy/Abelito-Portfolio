@@ -24,10 +24,14 @@ import { corpus, docCount, diagramExamples } from "@/content/corpus";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-/** Confirm the exact slug once with `npm run models` — gateway model ids use
- *  dotted versions and change over time, so this is env-overridable rather than
- *  hardcoded in the call. */
-const MODEL = process.env.AI_MODEL ?? "anthropic/claude-haiku-4.5";
+/** Gateway model slug. Override with AI_MODEL; confirm current ids with
+ *  `npm run models`.
+ *
+ *  NOT an Anthropic model: the gateway's free tier refuses those outright
+ *  ("Free tier users do not have access to this model"). If credits get added,
+ *  anthropic/claude-haiku-4.5 is the stronger choice for schema-constrained
+ *  block output and is a one-line swap. */
+const MODEL = process.env.AI_MODEL ?? "zai/glm-5.3-flash";
 
 // ponytail: best-effort in-memory rate limit — per serverless instance, resets
 // on cold start. The durable limit is configured in the Vercel AI Gateway
