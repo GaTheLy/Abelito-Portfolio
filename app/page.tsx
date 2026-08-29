@@ -8,7 +8,7 @@ import { BYLINE, HEADLINE, STANDFIRST, proof, routeRows, skills } from "@/conten
 const PILLARS = [
   {
     label: "WRITING",
-    body: "Longer thinking on evals, retrieval and shipping ML.",
+    body: "Essays on Medium — personal rather than technical, and synced automatically.",
     action: "Read the essays →",
     href: "/writing",
   },

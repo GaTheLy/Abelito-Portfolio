@@ -4,7 +4,7 @@ import { answerBlocks } from "./answer-blocks.ts";
 import { projects } from "./projects.ts";
 import { caseStudies } from "./case-studies.ts";
 import { roles, education, honours } from "./work.ts";
-import { essays } from "./writing.ts";
+import { knownPosts, WRITING_INTRO, unwritten } from "./writing.ts";
 import { formats, HANDLE } from "./creator.ts";
 import { contacts } from "./connect.ts";
 import {
@@ -191,11 +191,16 @@ function buildDocs(): Doc[] {
   // — Writing, creator, contact ————————————————————————————————
   docs.push({
     id: "writing:index",
-    title: "Essays",
-    body: essays
-      .map((e) => `${e.title} [${e.status}]: ${e.blurb} (tags: ${e.tags.join(", ")})`)
-      .join("\n"),
+    title: "Essays (published on Medium)",
+    body: [
+      WRITING_INTRO,
+      ...knownPosts.map(
+        (p) => `"${p.title}" (${p.date.slice(0, 10)}, tags: ${p.tags.join(", ")}) — ${p.excerpt}`,
+      ),
+      `NOT YET WRITTEN, do not describe these as published: ${unwritten.join(" / ")}`,
+    ].join("\n"),
   });
+
   docs.push({
     id: "creator:index",
     title: `TikTok channel ${HANDLE}`,
