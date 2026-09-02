@@ -26,7 +26,7 @@
   --color-raised: #fbfaf6; /* cards, top bar */
   --color-raised-alt: #fffdf9; /* inputs, chips */
   --color-raised-alt2: #fdfcf8; /* inner cards */
-  --color-well: #ede9df; /* home hero column, IN FOCUS, image-slot wells */
+  --color-well: #ede9df; /* home route band, image-slot wells, cards */
   --color-bar: #f4f1e7; /* table headers, code caption bars */
 
   /* Lines */
@@ -120,6 +120,25 @@ h3 {
   outline: 2px solid var(--color-green);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* The ask bar is one control made of three elements, so focus belongs on the
+   wrapping <form>, not on the bare input inside it — a ring on both renders as
+   a box-in-a-box. The input's own ring is suppressed and the bar takes over;
+   this pairing must stay together or the field loses its focus indicator. */
+.ask-field:focus-visible {
+  outline: none;
+}
+
+.ask-bar {
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ask-bar:focus-within {
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green) 20%, transparent);
 }
 
 /* Custom scrollbars — 9px, thumb #D5CFBE, transparent track. */

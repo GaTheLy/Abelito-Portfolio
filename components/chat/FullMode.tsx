@@ -1,46 +1,22 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { FOCUS, QLABEL, SUGGESTED } from "@/content/answers";
 import { answerBlocks } from "@/content/answer-blocks";
 import BlockList from "@/components/blocks/BlockList";
 import { useChat } from "./context";
 
-/** Home only, 704px. The full transcript experience: a dossier that follows the
- *  conversation, the question, the answer, and somewhere to go next. */
+/** Home only, 704px. The transcript: what was asked before, the question, and
+ *  the answer. Follow-ups come from the answer's own `followups` block, which
+ *  the API guarantees is present, so there is no separate suggestion rail. */
 export default function FullMode() {
-  const { topic, question, trail, blocks, streaming, error, answerSeq, ask } = useChat();
+  const { topic, question, trail, blocks, streaming, error, answerSeq } = useChat();
 
-  const focus = FOCUS[topic];
   // `blocks === null` means "no generated answer" — serve the authored one.
   // That is the offline path, the fallback path, and the guardrail path.
   const shown = blocks ?? answerBlocks[topic];
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* IN FOCUS — a mini dossier keyed off the answer's topic. This is what
-          stops the left column feeling static while someone chats. */}
-      <div className="flex-none border-b border-divider bg-well px-5 pt-3.5 pb-[15px]">
-        <div className="mb-2.5 flex items-center justify-between">
-          <span className="font-mono text-[9px] font-bold tracking-[0.16em] text-green uppercase">
-            In focus
-          </span>
-          <span className="font-mono text-[9px] tracking-[0.06em] text-ink-faint uppercase">
-            Follows the chat
-          </span>
-        </div>
-        <div className="text-[15px]/[1.2] font-medium tracking-[-0.015em] text-ink">
-          {focus.title}
-        </div>
-        <p className="mt-1.5 mb-0 text-[12.5px]/[1.5] text-ink-body">{focus.description}</p>
-        <dl className="mt-2.5 grid grid-cols-[52px_1fr] gap-x-[11px] gap-y-[5px] text-[11.5px]/[1.4]">
-          <dt className="pt-0.5 font-mono text-[9.5px] text-ink-label">{focus.k1}</dt>
-          <dd className="m-0">{focus.v1}</dd>
-          <dt className="pt-0.5 font-mono text-[9.5px] text-ink-label">{focus.k2}</dt>
-          <dd className="m-0">{focus.v2}</dd>
-        </dl>
-      </div>
-
       {/* Transcript */}
       <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-[18px] pb-2">
         {trail.length > 0 ? (
@@ -94,22 +70,6 @@ export default function FullMode() {
               </p>
             ) : null}
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-[7px] pt-1 pb-1.5">
-          <span className="self-center font-mono text-[9px] tracking-[0.12em] text-ink-faintest uppercase">
-            Try
-          </span>
-          {SUGGESTED.map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => ask(id)}
-              className="t-chip rounded-pill border border-border-input bg-raised-alt2 px-[11px] py-1.5 text-ink transition-colors hover:border-green"
-            >
-              {QLABEL[id]}
-            </button>
-          ))}
         </div>
       </div>
     </div>

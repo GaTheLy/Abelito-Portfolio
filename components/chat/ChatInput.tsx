@@ -14,22 +14,18 @@ export default function ChatInput() {
           e.preventDefault();
           submit(draft);
         }}
-        className="flex items-center gap-2.5 rounded-[9px] border border-border-input bg-raised-alt2 px-3 py-[9px] focus-within:border-green"
+        className="ask-bar flex items-center gap-2.5 rounded-[9px] border border-border-input bg-raised-alt2 px-3.5 py-[9px]"
       >
-        <label
-          htmlFor="chat-ask"
-          className="font-mono text-[9px] font-bold tracking-[0.12em] text-green uppercase"
-        >
-          Ask
-        </label>
         <input
           id="chat-ask"
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Type a question — markdown, tables and diagrams come back"
+          placeholder="Ask about Abelito…"
+          // The visible label is gone, so the input still needs a name.
+          aria-label="Ask about Abelito"
           autoComplete="off"
-          className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-faint"
+          className="ask-field min-w-0 flex-1 border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-faint"
         />
         <button
           type="submit"

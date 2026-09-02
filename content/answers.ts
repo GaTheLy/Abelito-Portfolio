@@ -44,9 +44,9 @@ export const QLABEL: Record<TopicId, string> = {
   fallback: "Write me a poem about Kubernetes",
 };
 
-/** The IN FOCUS dossier — the mini panel above the transcript that changes with
- *  the current answer. Keyed off topic id so it stays a lookup, not a
- *  computation (README §Production implementation notes). */
+/** Per-topic framing. The desktop dossier this was built for has been removed;
+ *  it now titles the mobile sheet and gives the model a one-line summary of each
+ *  topic in the corpus. Keyed off topic id so it stays a lookup. */
 export interface Focus {
   title: string;
   description: string;
@@ -172,18 +172,6 @@ export function routeQuestion(text: string): TopicId {
   const lower = text.toLowerCase();
   return MATCH.find(([re]) => re.test(lower))?.[1] ?? "fallback";
 }
-
-/** The eight suggestion chips under a full-mode answer. */
-export const SUGGESTED: readonly TopicId[] = [
-  "rag",
-  "evals",
-  "manna",
-  "cv",
-  "datasaur",
-  "rate",
-  "good",
-  "creator",
-];
 
 /** The four most-asked, shown in rail mode on non-case-study routes. */
 export const MOST_ASKED: readonly TopicId[] = ["rag", "manna", "datasaur", "rate"];
