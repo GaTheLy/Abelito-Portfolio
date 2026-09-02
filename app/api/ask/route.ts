@@ -29,6 +29,11 @@ export const maxDuration = 30;
 // on cold start. The durable limit is configured in the Vercel AI Gateway
 // dashboard (per-user RPM + daily token cap); this is just a cheap first gate
 // so an obvious flood never reaches the model at all.
+/** The prompt asks for 3–6 blocks; one answer came back with 133, almost all
+ *  duplicate tables. A hard stop keeps a degenerate response from rendering a
+ *  wall of markup and burning output tokens. */
+const MAX_BLOCKS = 12;
+
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 12;
 const hits = new Map<string, number[]>();
@@ -190,6 +195,7 @@ export async function POST(req: Request) {
       temperature: 0.3,
       maxOutputTokens: 2000,
       providerOptions: {
+        ...resolved.options,
         // The corpus is a stable ~11k-token prefix on every request. Anthropic
         // needs this hint; Google and GLM cache implicitly. Providers that
         // don't recognise it ignore it — it's an optimisation, not a
@@ -206,6 +212,7 @@ export async function POST(req: Request) {
         // emitted as a `done` line once the outcome is actually known.
         controller.enqueue(line({ type: "meta", topic }));
         let count = 0;
+        let sawFollowups = false;
         try {
           for await (const element of result.elementStream) {
             // Re-validate: elementStream is already schema-shaped, but this is
@@ -213,7 +220,9 @@ export async function POST(req: Request) {
             const parsed = blockSchema.safeParse(element);
             if (parsed.success) {
               controller.enqueue(line({ type: "block", block: parsed.data }));
+              if (parsed.data.type === "followups") sawFollowups = true;
               count += 1;
+              if (count >= MAX_BLOCKS) break;
             } else {
               // Kept deliberately: a dropped block is otherwise indistinguishable
               // from a model with nothing to say, which is exactly the blind spot
@@ -235,7 +244,16 @@ export async function POST(req: Request) {
           for (const block of answerBlocks[topic]) {
             controller.enqueue(line({ type: "block", block }));
           }
-          controller.enqueue(line({ type: "error", message: noteFor(failure) }));
+          // A model that returned nothing is not the same as one that errored;
+          // saying "unavailable" when the service answered fine is misleading.
+          controller.enqueue(
+            line({
+              type: "error",
+              message: failure
+                ? noteFor(failure)
+                : "The live chat had nothing to add here — this is my written answer.",
+            }),
+          );
           controller.enqueue(line({ type: "done", source: "authored" }));
         } else if (failure) {
           // Cut off mid-answer. Keep what arrived, top up from the authored one.
@@ -247,6 +265,14 @@ export async function POST(req: Request) {
           );
           controller.enqueue(line({ type: "done", source: "partial" }));
         } else {
+          // "Never dead-end" is a design promise, so it is enforced here rather
+          // than left to prompt compliance — Gemini omits the block routinely
+          // however firmly it is asked. Falls back to the authored topic's own
+          // follow-ups, which are already hand-written and on-topic.
+          if (!sawFollowups) {
+            const authored = answerBlocks[topic].find((b) => b.type === "followups");
+            if (authored) controller.enqueue(line({ type: "block", block: authored }));
+          }
           controller.enqueue(line({ type: "done", source: "model", via: resolved.provider }));
         }
 

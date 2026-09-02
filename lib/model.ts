@@ -19,13 +19,29 @@ export interface Resolved {
   /** Shown in logs and the /api/ask response so the source is never a guess. */
   provider: "google" | "gateway";
   id: string;
+  /** Merged into the streamObject call. */
+  options?: Record<string, Record<string, unknown>>;
 }
 
 /** Null means no credential at all — the caller serves authored answers. */
 export function resolveModel(): Resolved | null {
   if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     const id = process.env.AI_MODEL ?? "gemini-2.5-flash";
-    return { model: google(id), provider: "google", id };
+    return {
+      model: google(id),
+      provider: "google",
+      id,
+      options: {
+        google: {
+          // Gemini 2.5 Flash otherwise spends most of its output budget on
+          // reasoning and stops before the array closes — measured 1174 of 1715
+          // tokens, producing truncated answers. Off: 4 blocks in 3.1s instead
+          // of 3 in 5.7s. (thinkingLevel is a Gemini 3 parameter; 2.5 rejects
+          // it, so this is thinkingBudget.)
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      },
+    };
   }
 
   if (process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN) {

@@ -1,8 +1,65 @@
+import { z } from "zod";
+import { blockSchema } from "./blocks.ts";
 import { corpus, docCount, diagramExamples } from "../content/corpus.ts";
 
-// The chat's system prompt. Lives here rather than in the route so it can be
-// exercised directly — the route is hard to probe, and the prompt is the part
-// most likely to need tuning per model.
+/**
+ * The exact field names for every block type, DERIVED from the Zod schema so it
+ * can never drift from what the renderer accepts.
+ *
+ * This has to be in the prompt, not just the API call: Google's structured
+ * output cannot express a discriminated union, so Gemini never sees the schema
+ * and guesses field names (it emitted `content` where the schema wants `md`).
+ * Providers that do enforce the schema simply get told twice.
+ */
+type JsonNode = {
+  type?: string;
+  items?: JsonNode;
+  enum?: string[];
+  const?: unknown;
+  properties?: Record<string, JsonNode>;
+  required?: string[];
+  anyOf?: JsonNode[];
+  oneOf?: JsonNode[];
+};
+
+/** Render one field's type compactly, expanding one level of object nesting so
+ *  `items[]` shapes aren't opaque. */
+function describe(node: JsonNode | undefined): string {
+  if (!node) return "object";
+  if (node.enum) return node.enum.map((e) => JSON.stringify(e)).join("|");
+  if (node.const !== undefined) return JSON.stringify(node.const);
+  if (node.anyOf) return node.anyOf.map(describe).join("|");
+  if (node.type === "array") return `${describe(node.items)}[]`;
+  if (node.properties) {
+    const required = new Set(node.required ?? []);
+    const inner = Object.entries(node.properties)
+      .map(([name, child]) => `${name}${required.has(name) ? "" : "?"}: ${describe(child)}`)
+      .join(", ");
+    return `{${inner}}`;
+  }
+  return node.type ?? "object";
+}
+
+function blockShapes(): string {
+  // zod emits `oneOf` for a discriminatedUnion and `anyOf` for a plain union;
+  // read both so this survives a change of union kind.
+  const json = z.toJSONSchema(blockSchema, { io: "input" }) as {
+    oneOf?: JsonNode[];
+    anyOf?: JsonNode[];
+  };
+
+  return (json.oneOf ?? json.anyOf ?? [])
+    .map((variant) => {
+      const props = variant.properties ?? {};
+      const type = props.type?.const ?? "?";
+      const required = new Set(variant.required ?? []);
+      const fields = Object.entries(props)
+        .filter(([name]) => name !== "type")
+        .map(([name, child]) => `${name}${required.has(name) ? "" : "?"}: ${describe(child)}`);
+      return `- {"type": ${JSON.stringify(type)}${fields.length ? ", " + fields.join(", ") : ""}}`;
+    })
+    .join("\n");
+}
 
 export const SYSTEM_PROMPT = `You are the chat on Abelito Faleyrio Visese's portfolio site. You answer questions about his work for recruiters, hiring managers and founders looking to contract.
 
@@ -27,6 +84,9 @@ Direct, specific, and honest about limits. Concrete numbers over adjectives. Bri
 - Reach for the rich blocks when the content earns it: a "table" to compare options, "metrics" for results, "mermaid" for a pipeline or architecture, "lesson" for the one sentence worth remembering.
 - ALWAYS end with a "followups" block of 2–3 next questions, so the answer never dead-ends. Use "topic" for another chat answer, or "href" for a page (/projects/<slug>, /work, /writing, /creator, /connect).
 - Valid topic ids: rag, evals, manna, cv, datasaur, rate, good, creator, fallback.
+
+## Block shapes — use these EXACT field names
+${blockShapes()}
 
 ## Diagrams
 Emit mermaid ONLY when there is a real pipeline or architecture to show. Write the body only — no graph-type line, the renderer prepends "kind". Node labels go in double quotes. Use the house node classes: \`class a,b emphasis\` for the interesting steps, \`class c terminal\` for the output, \`class d draft\` for a not-yet-real stage. Always write a full "alt" description — it is the only thing a screen-reader user gets.

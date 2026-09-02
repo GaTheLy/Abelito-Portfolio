@@ -49,13 +49,16 @@ it automatically. As an alternative for CI or non-Vercel hosting, set
 slugs with `npm run models` rather than guessing — gateway ids use dotted
 versions and the catalogue changes.
 
-> **The free tier is the limiting factor.** Anthropic models are refused
-> outright (403). `zai/glm-5.3-flash` works and produces good answers — verified
-> generating real block arrays, including valid themed mermaid — but free-tier
-> requests are rate-limited to roughly **two before throttling**, after which
-> the chat falls back to authored answers with an honest note until it clears.
-> Measured 2/6 generated at a 6-second cadence. Adding AI Gateway credits fixes
-> this, and also unlocks Claude, which is stronger at schema-constrained output.
+> **Provider order matters.** A direct `GOOGLE_GENERATIVE_AI_API_KEY` is
+> preferred over the gateway, because the gateway's free tier refuses Anthropic
+> models outright (403) and throttles the rest after roughly two requests.
+>
+> Gemini needs two things the gateway didn't: the block shapes must be in the
+> prompt (Google's structured output cannot express a discriminated union, so
+> the model never sees the schema and guesses field names), and thinking is
+> turned off (2.5 Flash otherwise spent 68% of its output budget reasoning and
+> stopped before the array closed). Both are handled in `lib/prompt.ts` and
+> `lib/model.ts`.
 
 > **The OIDC token expires in ~24h**, so local dev needs
 > `vercel env pull .env.local` again most days — the chat falls back to the
