@@ -173,5 +173,10 @@ export function routeQuestion(text: string): TopicId {
   return MATCH.find(([re]) => re.test(lower))?.[1] ?? "fallback";
 }
 
+/** Shown before the first question is asked. The panel opens on this rather
+ *  than a pre-answered question the visitor never asked. */
+export const WELCOME =
+  "Ask me anything about the work on this site — how something was built, what the numbers mean, or the parts that didn't go to plan. I answer from a knowledge base of my own projects, and I'll say so when something is outside it.";
+
 /** The four most-asked, shown in rail mode on non-case-study routes. */
 export const MOST_ASKED: readonly TopicId[] = ["rag", "manna", "datasaur", "rate"];

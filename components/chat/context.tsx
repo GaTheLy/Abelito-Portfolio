@@ -23,6 +23,8 @@ interface ChatValue {
   error: string | null;
   /** Monotonic id — bumped on every answer so the page scroll can reset. */
   answerSeq: number;
+  /** False until the first question. Drives the panel's opening state. */
+  started: boolean;
 
   setDraft: (value: string) => void;
   /** Open a topic directly (chip click). Navigates Home: rail mode has no
@@ -43,7 +45,9 @@ export function useChat(): ChatValue {
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [topic, setTopic] = useState<TopicId>("rag");
-  const [question, setQuestion] = useState<string>(QLABEL.rag);
+  // Empty until the visitor actually asks — the panel opens on a welcome,
+  // not on an answer to a question nobody asked.
+  const [question, setQuestion] = useState<string>("");
   const [trail, setTrail] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [blocks, setBlocks] = useState<Block[] | null>(null);
@@ -61,7 +65,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const open = useCallback(
     (next: TopicId, label: string) => {
       inflight.current?.abort();
-      setTrail((prev) => [...prev, question].slice(-3));
+      // Filter: the opening state has no question, and a blank trail entry
+      // would render as an empty row under EARLIER.
+      setTrail((prev) => [...prev, question].filter(Boolean).slice(-3));
       setTopic(next);
       setQuestion(label);
       setDraft("");
@@ -179,6 +185,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       streaming,
       error,
       answerSeq,
+      started: answerSeq > 0,
       setDraft,
       ask,
       submit,
