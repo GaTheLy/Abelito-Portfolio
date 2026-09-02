@@ -3,6 +3,7 @@ import { blockSchema } from "@/lib/blocks";
 import { GUARDED, routeQuestion, type TopicId } from "@/content/answers";
 import { answerBlocks } from "@/content/answer-blocks";
 import { SYSTEM_PROMPT } from "@/lib/prompt";
+import { resolveModel } from "@/lib/model";
 
 // The chat's brain.
 //
@@ -23,15 +24,6 @@ import { SYSTEM_PROMPT } from "@/lib/prompt";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
-
-/** Gateway model slug. Override with AI_MODEL; confirm current ids with
- *  `npm run models`.
- *
- *  NOT an Anthropic model: the gateway's free tier refuses those outright
- *  ("Free tier users do not have access to this model"). If credits get added,
- *  anthropic/claude-haiku-4.5 is the stronger choice for schema-constrained
- *  block output and is a one-line swap. */
-const MODEL = process.env.AI_MODEL ?? "zai/glm-5.3-flash";
 
 // ponytail: best-effort in-memory rate limit — per serverless instance, resets
 // on cold start. The durable limit is configured in the Vercel AI Gateway
@@ -173,11 +165,10 @@ export async function POST(req: Request) {
     return authoredStream(topic, "That's a lot of questions in a minute — here's the short version while the rate limit cools off.");
   }
 
-  // No gateway credential (local dev without `vercel env pull`) — the whole
-  // site still works, it just serves the authored answers.
-  if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
-    return authoredStream(topic);
-  }
+  // No credential at all — the whole site still works, it just serves the
+  // authored answers.
+  const resolved = resolveModel();
+  if (!resolved) return authoredStream(topic);
 
   const history = cleanHistory(body?.history);
 
@@ -188,7 +179,7 @@ export async function POST(req: Request) {
 
   try {
     const result = streamObject({
-      model: MODEL,
+      model: resolved.model,
       onError: ({ error }) => {
         failure = error;
       },
@@ -199,9 +190,10 @@ export async function POST(req: Request) {
       temperature: 0.3,
       maxOutputTokens: 2000,
       providerOptions: {
-        // The corpus is a stable ~11k-token prefix on every request, so caching
-        // it cuts cost roughly tenfold. If a provider ignores this the call
-        // still succeeds — it's an optimisation, not a requirement.
+        // The corpus is a stable ~11k-token prefix on every request. Anthropic
+        // needs this hint; Google and GLM cache implicitly. Providers that
+        // don't recognise it ignore it — it's an optimisation, not a
+        // requirement.
         anthropic: { cacheControl: { type: "ephemeral" } },
         gateway: { tags: ["feature:portfolio-chat"] },
       },
@@ -255,7 +247,7 @@ export async function POST(req: Request) {
           );
           controller.enqueue(line({ type: "done", source: "partial" }));
         } else {
-          controller.enqueue(line({ type: "done", source: "model" }));
+          controller.enqueue(line({ type: "done", source: "model", via: resolved.provider }));
         }
 
         controller.close();

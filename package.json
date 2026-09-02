@@ -12,6 +12,7 @@
     "models": "node --env-file-if-exists=.env.local scripts/models.mjs"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.62",
     "ai": "^7.0.79",
     "framer-motion": "^12.42.2",
     "mermaid": "^11.17.2",
