@@ -14,6 +14,13 @@ const NAV = [
   { href: "/about", label: "About" },
 ] as const;
 
+// Routes that aren't live yet. Set NEXT_PUBLIC_LAUNCH_MODE=1 in the production
+// environment (Vercel) to disable them; leave it unset locally to keep them
+// fully navigable during development.
+const WIP_NAV = new Set(
+  process.env.NEXT_PUBLIC_LAUNCH_MODE === "1" ? ["/creator", "/about"] : [],
+);
+
 /** "Projects" stays lit for every case study, not just the index. */
 function isActive(href: string, pathname: string): boolean {
   if (href === "/") return pathname === "/";
@@ -50,14 +57,27 @@ export default function TopBar() {
         className="flex min-w-0 flex-none items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {NAV.map(({ href, label }) => {
+          if (WIP_NAV.has(href)) {
+            return (
+              <span
+                key={href}
+                aria-disabled="true"
+                title="Coming soon"
+                className="t-ui flex-none cursor-not-allowed rounded-nav px-3 py-[7px] text-ink-faintest"
+              >
+                {label}
+              </span>
+            );
+          }
           const active = isActive(href, pathname);
           return (
             <Link
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`t-ui flex-none rounded-nav px-3 py-[7px] transition-colors hover:bg-well ${active ? "bg-well text-ink" : "text-ink-muted"
-                }`}
+              className={`t-ui flex-none rounded-nav px-3 py-[7px] transition-colors hover:bg-well ${
+                active ? "bg-well text-ink" : "text-ink-muted"
+              }`}
             >
               {label}
             </Link>

@@ -1,3 +1,12 @@
+// Projects that have a case study but aren't ready to publish yet.
+// Set NEXT_PUBLIC_LAUNCH_MODE=1 in the production environment to hide them;
+// leave it unset locally so dev sees everything.
+const LAUNCH_WIP = new Set(
+  process.env.NEXT_PUBLIC_LAUNCH_MODE === "1"
+    ? ["manna", "talkative", "gerakin"]
+    : [],
+);
+
 // The project index. README is explicit that this page must stay data-driven —
 // "the project page is going to grow" — so this array drives /projects, the
 // Home feature grid, and every case study's STACK chips. Every count shown
@@ -139,6 +148,7 @@ export function selectProjects({ query, cat, sort, deepOnly }: Filters): Project
   const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
   const filtered = projects.filter((p) => {
+    if (LAUNCH_WIP.has(p.slug)) return false;
     if (deepOnly && !p.deep) return false;
     if (cat !== "All" && p.cat !== cat) return false;
     if (tokens.length === 0) return true;
@@ -163,5 +173,8 @@ export function projectBySlug(slug: string): Project | undefined {
 }
 
 /** Slugs that have a full case study, in page order. Drives the "NEXT CASE
- *  STUDY" cycle and the /projects/[slug] static params. */
-export const caseStudySlugs = projects.filter((p) => p.deep).map((p) => p.slug);
+ *  STUDY" cycle and the /projects/[slug] static params. WIP slugs are omitted
+ *  in production (NEXT_PUBLIC_LAUNCH_MODE=1). */
+export const caseStudySlugs = projects
+  .filter((p) => p.deep && !LAUNCH_WIP.has(p.slug))
+  .map((p) => p.slug);

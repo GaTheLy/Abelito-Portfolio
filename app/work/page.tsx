@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     "Eighteen months across Datasaur, KinetixPro, Axrail and the Apple Developer Academy — and what each one changed.",
 };
 
+// Academy products are WIP in production — show disabled cards instead of links.
+const academyWip = process.env.NEXT_PUBLIC_LAUNCH_MODE === "1";
+
 export default function WorkPage() {
   return (
     <Page>
@@ -77,8 +80,21 @@ export default function WorkPage() {
 
               {role.products ? (
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  {role.products.map((product) =>
-                    product.href ? (
+                  {role.products.map((product) => {
+                    const wip = academyWip && role.company === "Apple Developer Academy";
+                    if (wip) {
+                      return (
+                        <div
+                          key={product.name}
+                          aria-disabled="true"
+                          title="Coming soon"
+                          className="cursor-not-allowed rounded-lg border border-divider bg-raised px-3.5 py-3.5 opacity-40"
+                        >
+                          <ProductBody {...product} cta="Coming soon" />
+                        </div>
+                      );
+                    }
+                    return product.href ? (
                       <Link
                         key={product.name}
                         href={product.href}
@@ -94,8 +110,8 @@ export default function WorkPage() {
                       >
                         <ProductBody {...product} cta="Ask the chat →" />
                       </AskButton>
-                    ),
-                  )}
+                    );
+                  })}
                 </div>
               ) : null}
 

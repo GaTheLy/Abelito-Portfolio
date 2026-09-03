@@ -3,6 +3,14 @@ import type { RailContext } from "../lib/rail.ts";
 import type { TopicId } from "./answers.ts";
 import { projectBySlug } from "./projects.ts";
 
+// Mirror of the WIP set in projects.ts — filters the case study array in
+// production so routes, the next-study cycle and hasChatPanel all stay in sync.
+const LAUNCH_WIP = new Set(
+  process.env.NEXT_PUBLIC_LAUNCH_MODE === "1"
+    ? ["manna", "talkative", "gerakin"]
+    : [],
+);
+
 // The four full case studies. One template, fixed section order:
 //
 //   OVERVIEW → MY ROLE → PROBLEM → APPROACH → ARCHITECTURE → RESULTS
@@ -943,11 +951,15 @@ const raw: CaseInput[] = [
   },
 ];
 
-/** Validated at module load — a malformed block fails the build, not the page. */
-export const caseStudies: CaseStudy[] = raw.map((c) => ({
-  ...c,
-  sections: c.sections.map((s) => ({ label: s.label, blocks: parseBlocks(s.blocks) })),
-}));
+/** Validated at module load — a malformed block fails the build, not the page.
+ *  WIP studies are omitted in production (NEXT_PUBLIC_LAUNCH_MODE=1) so the
+ *  next-study cycle, static params and hasChatPanel all stay consistent. */
+export const caseStudies: CaseStudy[] = raw
+  .filter((c) => !LAUNCH_WIP.has(c.slug))
+  .map((c) => ({
+    ...c,
+    sections: c.sections.map((s) => ({ label: s.label, blocks: parseBlocks(s.blocks) })),
+  }));
 
 export function caseStudyBySlug(slug: string): CaseStudy | undefined {
   return caseStudies.find((c) => c.slug === slug);
