@@ -276,9 +276,8 @@ const raw: CaseInput[] = [
             md: "The same shape ran three times — YOLO11n for detection, YOLO11n-seg for segmentation, and the classifiers over the extracted features. Only the dataset and the metrics change; the SVM adds a grid search over its hyperparameters in the training step.",
           },
           {
-            type: "callout",
-            label: "CONFIRM",
-            text: "The defence slides don't name the speed-estimation method or the frame-sampling strategy, but the STACK still lists Lucas-Kanade optical flow and SSIM sampling. Confirm both — or drop them from the stack.",
+            type: "text",
+            md: "**Speed** is measured using Lucas-Kanade sparse optical flow — tracking the pixel displacement of detected vehicle centroids frame-to-frame and converting it to a normalised speed feature. Combined with SSIM-based frame sampling to skip visually redundant frames, this keeps the pipeline at 18–22 FPS on real CCTV footage.",
           },
         ],
       },
@@ -458,32 +457,23 @@ const raw: CaseInput[] = [
             type: "timeline",
             entries: [
               {
-                label: "PHASE 01 · DATA",
-                text: "850 detection frames and 430 road frames, boxed and polygoned by hand in Roboflow.",
+                label: "OCT — DEC 2024 · PROPOSAL",
+                text: "Literature review, problem scoping and proposal document — establishing the four-feature hypothesis and choosing YOLO11 as the detector.",
               },
               {
-                label: "PHASE 02 · VISION",
-                text: "Fine-tuned YOLO11n and YOLO11n-seg. 90.8% and 72.7% mAP@50, 14.4 ms per image.",
+                label: "JAN 2025 · PROPOSAL DEFENCE",
+                text: "Proposal defended and approved at Petra Christian University.",
               },
               {
-                label: "PHASE 03 · FEATURES",
-                text: "Boxes and masks became flow, density, occupancy and speed — 20,113 labelled rows.",
+                label: "JAN — MAY 2025 · BUILD",
+                text: "Dataset sampling and labelling in Roboflow (850 detection frames, 430 segmentation frames), fine-tuning both YOLO11n models, extracting 20,113 feature rows, and training the NN and SVM classifiers.",
               },
               {
-                label: "PHASE 04 · CLASSIFY",
-                text: "Neural network and grid-searched SVM over those features. 97.5% on unseen data.",
-              },
-              {
-                label: "PHASE 05 · DEFENCE",
-                text: "Whole pipeline live at 18–22 FPS, defended at Petra Christian University.",
+                label: "JUN 2025 · THESIS DEFENCE",
+                text: "Full pipeline — detection, segmentation, Lucas-Kanade speed, classification — running live at 18–22 FPS. 97.5% accuracy on the unseen test set.",
                 current: true,
               },
             ],
-          },
-          {
-            type: "callout",
-            label: "CONFIRM",
-            text: "The slides carry no dates. Confirm the real phase timing before launch.",
           },
         ],
       },
