@@ -77,6 +77,21 @@ const mermaid = z.object({
   alt: z.string(),
 });
 
+/** A figure. With `src` it renders the image; without one it renders the
+ *  design's dashed well — the same honest gap as `callout`, saying exactly what
+ *  Abelito still has to supply. Drop the file in /public and set `src`. */
+const image = z.object({
+  type: z.literal("image"),
+  /** Path under /public, e.g. "/assets/traffic/confusion-matrix.png". */
+  src: z.string().optional(),
+  /** Caption bar when filled, and the brief for the slot when empty. */
+  caption: z.string(),
+  /** Alt text. Falls back to the caption — never to nothing. */
+  alt: z.string().optional(),
+  /** CSS aspect-ratio, so the slot reserves the shape the image will take. */
+  ratio: z.string().default("16 / 9"),
+});
+
 const metrics = z.object({
   type: z.literal("metrics"),
   items: z
@@ -194,6 +209,7 @@ export const blockSchema = z.discriminatedUnion("type", [
   table,
   keyvalue,
   mermaid,
+  image,
   metrics,
   stack,
   timeline,
@@ -204,6 +220,23 @@ export const blockSchema = z.discriminatedUnion("type", [
 ]);
 
 export type Block = z.infer<typeof blockSchema>;
+
+/** What the rail beside a case study is allowed to say. There is no room in
+ *  340px for a table or a diagram, and a rail answer is a paragraph, not a
+ *  dossier — so the model is constrained to prose rather than trusted to
+ *  restrain itself. A subset of blockSchema, so the renderer needs no second
+ *  path and the client keeps its `Block[]` type. */
+export const proseSchema = z.discriminatedUnion("type", [text, list]);
+
+export function isProse(block: Block): boolean {
+  return block.type === "text" || block.type === "list";
+}
+
+/** Keep only what the rail renders. Used for the authored fallbacks, which are
+ *  written rich and must be narrowed before they reach a 340px column. */
+export function proseOnly(blocks: Block[]): Block[] {
+  return blocks.filter(isProse);
+}
 export type BlockType = Block["type"];
 
 /** Authoring shape — fields with defaults are optional here. Content modules
@@ -236,6 +269,7 @@ export const blockLabel: Record<BlockType, string> = {
   table: "Comparison",
   keyvalue: "Details",
   mermaid: "Architecture",
+  image: "Figure",
   metrics: "Results",
   stack: "Stack",
   timeline: "Timeline",

@@ -33,7 +33,6 @@ export default function ProjectsBrowser() {
   const query = params.get("q") ?? "";
   const cat = (CATEGORIES.find((c) => c === params.get("cat")) ?? "All") as Category;
   const sort = (SORTS.find((s) => s.id === params.get("sort"))?.id ?? "new") as SortId;
-  const deepOnly = params.get("deep") === "1";
 
   /** Write state to the URL. `replace` so filtering doesn't fill the back stack. */
   const setParam = useCallback(
@@ -47,8 +46,8 @@ export default function ProjectsBrowser() {
     [params, router],
   );
 
-  const results = selectProjects({ query, cat, sort, deepOnly });
-  const filtering = Boolean(query.trim()) || cat !== "All" || deepOnly;
+  const results = selectProjects({ query, cat, sort, deepOnly: false });
+  const filtering = Boolean(query.trim()) || cat !== "All";
   const sortLabel = SORTS.find((s) => s.id === sort)?.label ?? "Newest";
 
   const resultLabel = filtering
@@ -113,18 +112,6 @@ export default function ProjectsBrowser() {
             ))}
           </Group>
 
-          {/* Kept visually apart from the sort chips on purpose — when it sat in
-              that row it read as a fifth sort option. */}
-          <Group label="Depth" className="ml-auto">
-            <button
-              type="button"
-              aria-pressed={deepOnly}
-              onClick={() => setParam("deep", deepOnly ? null : "1")}
-              className={`${CHIP} ${deepOnly ? ON : OFF}`}
-            >
-              Case studies only
-            </button>
-          </Group>
         </div>
       </div>
 

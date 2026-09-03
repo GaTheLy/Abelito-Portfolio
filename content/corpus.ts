@@ -49,6 +49,10 @@ function blockToText(block: Block): string {
       return block.rows.map((r) => `${r.key}: ${r.value}`).join("\n");
     case "mermaid":
       return `Diagram (${block.kind}): ${block.alt}`;
+    case "image":
+      return block.src
+        ? `Figure: ${block.caption}`
+        : `[FIGURE NOT YET SUPPLIED — do not describe it as shown] ${block.caption}`;
     case "metrics":
       return block.items.map((m) => `${m.value} — ${m.label}`).join("; ");
     case "stack":

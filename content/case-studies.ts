@@ -6,7 +6,11 @@ import { projectBySlug } from "./projects.ts";
 // The four full case studies. One template, fixed section order:
 //
 //   OVERVIEW → MY ROLE → PROBLEM → APPROACH → ARCHITECTURE → RESULTS
-//   → STACK → TIMELINE → LESSON      (Manna inserts WHAT BROKE before LESSON)
+//   → STACK → TIMELINE → LESSON
+//
+// Two studies insert one honesty section before STACK: Manna's WHAT BROKE and
+// traffic's WHAT'S WEAK. The first six labels and the last are fixed — the
+// content-integrity test enforces exactly that much.
 //
 // The ARCHITECTURE diagrams are real mermaid, drafted from each project's own
 // APPROACH copy. They need Abelito's eye for technical accuracy before launch —
@@ -49,23 +53,23 @@ const raw: CaseInput[] = [
     slug: "traffic",
     h1: "Counting cars is not measuring traffic.",
     standfirst:
-      "Cities buy loop sensors and radar to answer one question — is this road jammed? The cameras were already there. So I built the answer out of the cameras.",
+      "Malang's CCTV cameras were already pointed at the road. My thesis turned them into a congestion sensor — two YOLO11 models, four traffic-flow features, and a classifier that calls the jam at 18–22 frames a second.",
     meta: [
-      { key: "CONTEXT", value: "Undergraduate thesis" },
-      { key: "YEAR", value: "2025" },
-      { key: "WHERE", value: "Petra Christian University, Surabaya" },
-      { key: "OUTCOME", value: "97.4% accuracy at 14.4ms" },
+      { key: "CONTEXT", value: "Undergraduate thesis · defended 2025" },
+      { key: "WHERE", value: "Petra Christian University" },
+      { key: "FEEDS", value: "Malang City CCTV · Diskominfo" },
+      { key: "OUTCOME", value: "97.5% accuracy · 18–22 FPS" },
     ],
     questions: [
       { label: "Why not just count the vehicles?", topic: "cv" },
-      { label: "How do you know 97.4% is real?", topic: "evals" },
+      { label: "How do you know 97.5% is real?", topic: "evals" },
       { label: "Where else have you used YOLO?", topic: "cv" },
     ],
     related: [
       {
-        label: "Padel court analytics",
-        note: "Tracking that survives occlusion — the same motion-over-counts instinct.",
-        href: "/projects?q=padel",
+        label: "Talkative",
+        note: "Also reads raw sensor data — audio waveforms instead of video frames — to find structure in a noisy signal.",
+        href: "/projects/talkative",
       },
       {
         label: "GerakinAja",
@@ -79,7 +83,11 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "A camera-only congestion sensor. Two YOLO11 models, optical flow and an SVM turn an ordinary CCTV feed into a live congestion signal — 97.4% accurate at 14.4ms per classification, with no roadside hardware to install or maintain. Built as my undergraduate thesis at Petra Christian University and defended in 2025.",
+            md: "A congestion sensor built entirely out of a CCTV feed. Two fine-tuned YOLO11n models — one detecting vehicles, one segmenting the road surface — turn every frame into six numbers describing how traffic is *behaving*, and a small classifier reads those numbers as congested or not. **97.5% accuracy on the unseen test set**, with the whole pipeline running at 18–22 FPS. My undergraduate thesis at Petra Christian University, defended in 2025 against live feeds from Malang City.",
+          },
+          {
+            type: "text",
+            md: "Malang is a hard case on purpose. Indonesian traffic is heterogeneous and motorcycle-dominated — motorcycles are over **83% of vehicles nationally** — so a detector trained on car-shaped Western traffic has very little to say about it, and a model that can't see motorbikes can't see the jam.",
           },
         ],
       },
@@ -88,7 +96,7 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "Sole engineer. Dataset collection and annotation, both detection models, the optical-flow feature pipeline, the classifier, the evaluation — and the thesis that had to defend all of it.",
+            md: "Sole engineer. I collected and hand-annotated all three datasets, fine-tuned both YOLO11 models, wrote the feature-extraction layer that turns boxes and masks into traffic numbers, trained and compared the two classifiers, ran the evaluation — and defended the whole thing.",
           },
         ],
       },
@@ -97,7 +105,19 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "Congestion monitoring in Indonesian cities means hardware — inductive loops, radar, manual counts. Expensive to install and worse to maintain, so most intersections simply aren't measured. Meanwhile CCTV is everywhere and watched only by humans. The cheap answer would be to count vehicles per frame, and the cheap answer is wrong: twenty cars moving freely and twenty cars stopped look identical to a counter.",
+            md: "Congestion in Indonesian cities is measured badly or not at all, and it is expensive either way.",
+          },
+          {
+            type: "list",
+            items: [
+              "**The cost is national-scale.** Congestion is estimated to cost IDR 63.4 trillion a year in lost economic activity and transport efficiency (DirJen Kemenhub, 2024).",
+              "**The instruments are the obstacle.** Existing monitoring depends on costly, invasive hardware — in-ground loops, roadside sensors — or trades away accuracy to run in real time (Cui et al., 2020). Most intersections therefore go unmeasured.",
+              "**Vision systems take the easy signal.** Earlier camera-based work classifies on vehicle count alone, ignoring density, occupancy and speed. Twenty vehicles moving freely and twenty vehicles stopped are the same count.",
+            ],
+          },
+          {
+            type: "text",
+            md: "So the thesis had two questions to answer: does classifying on **four traffic-flow features** — flow, occupancy, density and speed — detect congestion more accurately than counting? And how accurate is YOLO11 in the first place on a vehicle population that is mostly motorbikes?",
           },
         ],
       },
@@ -106,11 +126,93 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "Two YOLO11 models in parallel: one detecting vehicles, one segmenting the drivable road — so density is measured against actual asphalt rather than the frame. Lucas-Kanade optical flow turns detections into velocity; velocity plus density becomes occupancy. An SVM classifies congestion from those motion features instead of from a raw count.",
+            md: "Measure behaviour, not headcount. The detector's job is not to answer the question — it is to produce the raw material the four features are computed from.",
+          },
+          { type: "heading", text: "The four features" },
+          {
+            type: "table",
+            columns: [
+              { label: "Feature" },
+              { label: "Derived from" },
+              { label: "What it catches" },
+            ],
+            rows: [
+              {
+                cells: [
+                  "Flow",
+                  "Per-class detection counts — `flow_car`, `flow_motorbike`",
+                  "How much traffic is passing",
+                ],
+              },
+              {
+                cells: [
+                  "Density",
+                  "Detected vehicle area against segmented road area — `density_car`, `density_motorbike`",
+                  "How tightly packed it is",
+                ],
+              },
+              {
+                cells: [
+                  "Occupancy",
+                  "Share of the drivable road covered by vehicles",
+                  "How full the asphalt is",
+                ],
+              },
+              {
+                cells: ["Speed", "Frame-to-frame motion of detections", "Whether it is moving at all"],
+              },
+            ],
+            footnote:
+              "Six columns in the dataset — flow and density are split by vehicle class — plus the binary `congested` label.",
           },
           {
             type: "text",
-            md: "Frame sampling is global rather than fixed-interval, so the pipeline spends its compute on frames that actually differ.",
+            md: "Road segmentation is what makes density and occupancy mean anything. Without it, density is vehicles-per-frame, which changes with camera angle rather than with traffic.",
+          },
+          { type: "heading", text: "Three datasets, all hand-labelled" },
+          {
+            type: "table",
+            columns: [{ label: "Dataset" }, { label: "Size" }, { label: "Labelling" }, { label: "Augmentation" }],
+            rows: [
+              {
+                cells: [
+                  "Vehicle detection",
+                  "850 images · 2 classes",
+                  "Bounding boxes by hand in Roboflow",
+                  "Brightness, exposure, blur",
+                ],
+              },
+              {
+                cells: [
+                  "Road segmentation",
+                  "430 images",
+                  "Polygons by hand in Roboflow",
+                  "Rotation, horizontal flip, colour correction",
+                ],
+              },
+              {
+                cells: [
+                  "Congestion classification",
+                  "20,113 rows · 6 features",
+                  "Generated by the pipeline, labelled `congested`",
+                  "—",
+                ],
+              },
+            ],
+            footnote:
+              "The classification set is near-balanced — 10,059 not congested (50.01%) against 10,054 congested (49.99%) — which is what makes accuracy a fair headline number rather than a flattering one.",
+          },
+          {
+            type: "image",
+            src: "/assets/traffic/detection-dataset.png",
+            caption: "Vehicle detection dataset — a raw CCTV frame beside the same frame with Car and Motorbike boxes.",
+            ratio: "16 / 9",
+          },
+          {
+            type: "image",
+            src: "/assets/traffic/segmentation-dataset.png",
+            caption: "Road segmentation dataset — the same street with the drivable surface drawn as polygons.",
+            ratio: "16 / 9",
           },
         ],
       },
@@ -120,21 +222,55 @@ const raw: CaseInput[] = [
           {
             type: "mermaid",
             kind: "flowchart LR",
-            alt: "An RTSP CCTV feed passes through SSIM frame sampling, then splits into two parallel YOLO11 models — one detecting vehicles, one segmenting the road. Both feed Lucas-Kanade optical flow, which produces occupancy, density and velocity as one feature vector for an SVM congestion classifier.",
+            alt: "A Malang CCTV stream feeds three things in parallel: a YOLO11n vehicle detector, a YOLO11n-seg road-surface segmenter, and a speed measurement taken from frame-to-frame motion. The detector produces flow; detector and segmenter together produce density and occupancy. Flow, density, occupancy and speed go to a classifier — a neural network or an SVM — which outputs congested or not congested.",
             code: [
-              '  rtsp["RTSP / CCTV"] --> ssim["SSIM frame sampling"]',
-              '  ssim --> veh["YOLO11 · vehicles"]',
-              '  ssim --> road["YOLO11 · road seg"]',
-              '  veh --> flow["Lucas-Kanade flow"]',
-              '  road --> flow',
-              '  flow --> svm["SVM · congestion"]',
+              '  cctv["CCTV stream · Malang"] --> veh["YOLO11n · vehicles"]',
+              '  cctv --> road["YOLO11n-seg · road surface"]',
+              '  cctv --> speed["speed · frame-to-frame motion"]',
+              '  veh --> flow["flow · car + motorbike"]',
+              '  veh --> dens["density"]',
+              '  road --> dens',
+              '  veh --> occ["occupancy"]',
+              '  road --> occ',
+              '  flow --> clf["classifier · NN or SVM"]',
+              '  dens --> clf',
+              '  occ --> clf',
+              '  speed --> clf',
+              '  clf --> out["congested / not congested"]',
               "  class veh,road emphasis",
-              "  class svm terminal",
+              "  class out terminal",
             ].join("\n"),
           },
           {
             type: "text",
-            md: "Occupancy, density and velocity reach the classifier as one feature vector — the road-segmentation branch is what makes density mean anything.",
+            md: "Two branches of a single frame meet again at the feature vector: the detector says *what and how many*, the segmenter says *out of how much road*, and the motion between frames says *how fast*. Only then does anything classify.",
+          },
+          { type: "heading", text: "How each model was trained" },
+          {
+            type: "mermaid",
+            kind: "flowchart TB",
+            alt: "Training flow shared by all three models: the Roboflow dataset is split and pre-processed with augmentation, pretrained weights are loaded, hyperparameters are set, the model is trained and saved. Evaluation then runs the saved model over the held-out validation split and reports precision, recall and mAP.",
+            code: [
+              '  ds["dataset · split"] --> pre["pre-processing + augmentation"]',
+              '  pre --> load["load pretrained weights"]',
+              '  load --> hp["set hyperparameters"]',
+              '  hp --> train["train"]',
+              '  train --> saved["saved model"]',
+              '  saved --> infer["inference on held-out split"]',
+              '  val["validation data"] --> infer',
+              '  infer --> metrics["evaluate · P, R, mAP"]',
+              "  class train emphasis",
+              "  class metrics terminal",
+            ].join("\n"),
+          },
+          {
+            type: "text",
+            md: "The same shape ran three times — YOLO11n for detection, YOLO11n-seg for segmentation, and the classifiers over the extracted features. Only the dataset and the metrics change; the SVM adds a grid search over its hyperparameters in the training step.",
+          },
+          {
+            type: "callout",
+            label: "CONFIRM",
+            text: "The defence slides don't name the speed-estimation method or the frame-sampling strategy, but the STACK still lists Lucas-Kanade optical flow and SSIM sampling. Confirm both — or drop them from the stack.",
           },
         ],
       },
@@ -144,11 +280,165 @@ const raw: CaseInput[] = [
           {
             type: "metrics",
             items: [
-              { value: "97.4%", label: "SVM CONGESTION ACCURACY", lead: true },
-              { value: "90.8%", label: "YOLO11 VEHICLE DETECTION mAP" },
-              { value: "14.4ms", label: "CLASSIFIER INFERENCE" },
-              { value: "0", label: "ROADSIDE SENSORS REQUIRED" },
+              { value: "97.5%", label: "CONGESTION ACCURACY · TEST SET", lead: true },
+              { value: "90.8%", label: "VEHICLE DETECTION mAP@50" },
+              { value: "72.7%", label: "ROAD SEGMENTATION MASK mAP@50" },
+              { value: "18–22", label: "FPS END TO END" },
             ],
+          },
+          { type: "heading", text: "Vehicle detection — YOLO11n" },
+          {
+            type: "table",
+            columns: [
+              { label: "Class" },
+              { label: "P", align: "right" },
+              { label: "R", align: "right" },
+              { label: "mAP@50", align: "right" },
+              { label: "mAP@50-95", align: "right" },
+            ],
+            rows: [
+              { cells: ["All", "0.853", "0.831", "0.908", "0.682"], highlight: true },
+              { cells: ["Car", "0.862", "0.907", "0.952", "0.799"] },
+              { cells: ["Motorbike", "0.844", "0.754", "0.864", "0.564"] },
+            ],
+            footnote: "14.4 ms per image — fast enough to run on the live stream rather than on stored clips.",
+          },
+          {
+            type: "text",
+            md: "Cars are close to solved at 95.2% mAP@50. Motorbikes are the honest number: **75.4% recall**, and mAP@50-95 of 56.4%. They are small, they cluster, and in a queue they physically occlude one another — which is exactly the condition the system is meant to detect.",
+          },
+          {
+            type: "image",
+            src: "/assets/traffic/detection-eval.png",
+            caption: "Detection evaluation — normalised confusion matrix and the precision-recall curve per class.",
+            ratio: "6 / 4",
+          },
+          {
+            type: "image",
+            src: "/assets/traffic/detection-samples.png",
+            caption: "Detection on free-flowing traffic, and on a dense high-occlusion queue at the same junction.",
+            ratio: "16 / 9",
+          },
+          { type: "heading", text: "Road segmentation — YOLO11n-seg" },
+          {
+            type: "metrics",
+            items: [
+              { value: "72.7%", label: "MASK mAP@50" },
+              { value: "83.1%", label: "PRECISION" },
+              { value: "67.1%", label: "RECALL" },
+              { value: "48.2%", label: "MASK mAP@50-95" },
+            ],
+          },
+          {
+            type: "text",
+            md: "Decent in daylight and clearly the weaker half of the pipeline at night: glare and uneven street lighting break the road mask into fragments, and everything computed against road area degrades with it.",
+          },
+          {
+            type: "image",
+            src: "/assets/traffic/segmentation-samples.png",
+            caption: "Segmentation in daylight against the same model at night — one clean mask, three fragmented ones.",
+            ratio: "16 / 9",
+          },
+          { type: "heading", text: "Feature extraction" },
+          {
+            type: "text",
+            md: "The raw YOLO outputs — boxes and masks — are converted per frame into the six numerical features, printed alongside the overlay while the stream runs. This is the layer that made the dataset: 20,113 rows of real traffic state.",
+          },
+          {
+            type: "image",
+            src: "/assets/traffic/feature-extraction.png",
+            caption: "Live feature extraction — FPS, car and motorbike counts, density, occupancy and speed per frame.",
+            ratio: "16 / 9",
+          },
+          { type: "heading", text: "The classifier — two of them" },
+          {
+            type: "table",
+            columns: [
+              { label: "Model" },
+              { label: "Accuracy", align: "right" },
+              { label: "Precision", align: "right" },
+              { label: "Recall", align: "right" },
+              { label: "F1", align: "right" },
+            ],
+            rows: [
+              {
+                cells: ["Neural network", "97.54%", "98%", "98%", "98%"],
+                highlight: true,
+              },
+              { cells: ["SVM · grid-searched", "97.38%", "98.2%", "96.5%", "97.35%"] },
+            ],
+            footnote:
+              "NN figures are the macro average over both classes; its test ROC AUC is 0.9967. The deck quotes the NN at 97.54% on the results slide and 97.57% in the conclusion — confirm which is final.",
+          },
+          {
+            type: "text",
+            md: "Both were trained on the same 20,113 rows and both land within two-tenths of a percent of each other, which says more about the features than about either model. The neural network is the one the conclusion runs on.",
+          },
+          {
+            type: "code",
+            caption: "PYTORCH · TrafficClassifier",
+            code: [
+              "TrafficClassifier(",
+              "  (layer_1):     Linear(in_features=6, out_features=64, bias=True)",
+              "  (relu1):       ReLU()",
+              "  (dropout1):    Dropout(p=0.3, inplace=False)",
+              "  (layer_2):     Linear(in_features=64, out_features=32, bias=True)",
+              "  (relu2):       ReLU()",
+              "  (dropout2):    Dropout(p=0.3, inplace=False)",
+              "  (output_layer):Linear(in_features=32, out_features=1, bias=True)",
+              "  (sigmoid):     Sigmoid()",
+              ")",
+            ].join("\n"),
+          },
+          {
+            type: "text",
+            md: "Six inputs, two hidden layers of 64 and 32 units, ReLU with 0.3 dropout on each, one sigmoid output. Small on purpose — the features carry the signal, so the model doesn't have to.",
+          },
+          {
+            type: "image",
+            src: "/assets/traffic/classifier-live.png",
+            caption: "The classifier live on the stream — the same junction called Not Congested and Congested.",
+            ratio: "16 / 9",
+          },
+        ],
+      },
+      {
+        label: "WHAT'S WEAK",
+        blocks: [
+          {
+            type: "text",
+            md: "Two numbers in the results are worse than the headline, and both were in the defence rather than hidden behind it.",
+          },
+          {
+            type: "cards",
+            columns: 2,
+            items: [
+              {
+                label: "WEAKEST NUMBER",
+                title: "Motorbike recall — 75.4%",
+                tone: "warn",
+                body: [
+                  "One in four motorbikes is missed in dense, heavily occluded queues",
+                  "Fix: occlusion-specific augmentation",
+                  "Fix: DeepSORT tracking to hold identity through a crowd",
+                  "Fix: more high-occlusion training examples",
+                ],
+              },
+              {
+                label: "SECOND WEAKEST",
+                title: "Segmentation mAP@50-95 — 48.2%",
+                tone: "warn",
+                body: [
+                  "Mask precision falls off at night — glare and uneven lighting",
+                  "Fix: more night-time and multi-angle images",
+                  "Fix: evaluate alternative segmentation architectures",
+                ],
+              },
+            ],
+          },
+          {
+            type: "text",
+            md: "And a scope limit worth stating plainly: every number here is measured on Malang City CCTV. The thesis makes no claim about other cities, other camera heights, or other traffic mixes.",
           },
         ],
       },
@@ -160,23 +450,32 @@ const raw: CaseInput[] = [
             type: "timeline",
             entries: [
               {
-                label: "WEEKS 1—3",
-                text: "Naive counting baseline. Worked on empty roads, failed at every queue.",
+                label: "PHASE 01 · DATA",
+                text: "850 detection frames and 430 road frames, boxed and polygoned by hand in Roboflow.",
               },
               {
-                label: "WEEKS 4—7",
-                text: "Added road segmentation. Density measured against asphalt, not pixels.",
+                label: "PHASE 02 · VISION",
+                text: "Fine-tuned YOLO11n and YOLO11n-seg. 90.8% and 72.7% mAP@50, 14.4 ms per image.",
               },
               {
-                label: "WEEKS 8—11",
-                text: "Optical flow in. Velocity turned out to matter more than volume.",
+                label: "PHASE 03 · FEATURES",
+                text: "Boxes and masks became flow, density, occupancy and speed — 20,113 labelled rows.",
               },
               {
-                label: "WEEK 12",
-                text: "SVM over the flow features. 97.4% at 14.4ms, thesis defended.",
+                label: "PHASE 04 · CLASSIFY",
+                text: "Neural network and grid-searched SVM over those features. 97.5% on unseen data.",
+              },
+              {
+                label: "PHASE 05 · DEFENCE",
+                text: "Whole pipeline live at 18–22 FPS, defended at Petra Christian University.",
                 current: true,
               },
             ],
+          },
+          {
+            type: "callout",
+            label: "CONFIRM",
+            text: "The slides carry no dates. Confirm the real phase timing before launch.",
           },
         ],
       },
@@ -185,7 +484,7 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "lesson",
-            text: "The feature engineering beat the bigger model. I spent weeks trying to detect my way out of the problem before realising the answer was in how the detections *moved* — and a 14ms classifier is what made it deployable on hardware a city can actually afford.",
+            text: "The feature engineering beat the bigger model. Counting vehicles is the obvious signal and the wrong one — twenty moving and twenty stopped are the same count. Once flow, density, occupancy and speed were right, two hidden layers were enough to separate them, and a grid-searched SVM landed within two-tenths of a percent of the network. The work was never in the classifier.",
           },
         ],
       },
@@ -210,14 +509,14 @@ const raw: CaseInput[] = [
     ],
     related: [
       {
-        label: "Riset",
-        note: "The same hybrid-retrieval instinct, pointed at research papers.",
-        href: "/projects?q=riset",
+        label: "Traffic congestion detection",
+        note: "The same discipline of reading a messy signal — congestion from CCTV, intent from WhatsApp — and giving it structure.",
+        href: "/projects/traffic",
       },
       {
-        label: "Axrail commerce agent",
-        note: "Conversational ordering again — this time on Bedrock, at production scale.",
-        href: "/projects?q=axrail",
+        label: "GerakinAja",
+        note: "Also shipped on a real platform; also about what 'done' means to the person using it.",
+        href: "/projects/gerakin",
       },
     ],
     sections: [
@@ -522,9 +821,9 @@ const raw: CaseInput[] = [
         href: "/projects/talkative",
       },
       {
-        label: "Cire",
-        note: "Edge-to-cloud CV, where the win was batching rather than the model.",
-        href: "/projects?q=cire",
+        label: "Traffic congestion detection",
+        note: "Also on-device intelligence — same instinct to keep inference tight and avoid the network call.",
+        href: "/projects/traffic",
       },
     ],
     sections: [
@@ -664,8 +963,8 @@ export function nextCaseStudy(slug: string): CaseStudy {
  * The 340px rail's page-aware context. Returns null for every route that isn't
  * a case study, which is the signal for the generic "ASK ME ANYTHING" panel.
  *
- * The section outline is derived from the case study's own sections, so it can
- * never drift from what's actually on the page.
+ * The section outline is NOT here — it lives in the page's left column, where
+ * an anchor can actually move the reader. What the rail keeps is the scope.
  */
 export function railContext(pathname: string): RailContext | null {
   const match = /^\/projects\/([^/]+)$/.exec(pathname);
@@ -675,9 +974,21 @@ export function railContext(pathname: string): RailContext | null {
   if (!study) return null;
 
   return {
-    title: study.h1,
-    sections: study.sections.map((s) => s.label),
-    questions: study.questions,
-    related: study.related,
+    slug: study.slug,
+    // The project record owns the short name — there is no second list.
+    name: projectBySlug(study.slug)?.name ?? study.slug,
   };
+}
+
+/** Where the chat panel renders: Home, and a case study. Everywhere else it was
+ *  a column of chips that navigated you away. Shell, ChatPanel and TopBar all
+ *  read this one function so the layout and the top bar's Ask link can't drift. */
+export function hasChatPanel(pathname: string): boolean {
+  return pathname === "/" || railContext(pathname) !== null;
+}
+
+/** Section anchor id, shared by the page's contents list and its headings so
+ *  the two can never disagree. */
+export function sectionId(label: string): string {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }

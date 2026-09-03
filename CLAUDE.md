@@ -42,7 +42,32 @@ no loader and no test framework. `app/` and `components/` use the `@/` alias
 normally. Don't "tidy" the extensions away.
 
 **The chat panel must stay in the root layout.** Moving it into a page would
-remount it on every navigation and destroy the premise of the design.
+remount it on every navigation and destroy the premise of the design. It renders
+only on `/` and `/projects/<slug>` — `hasChatPanel()` in
+`content/case-studies.ts` is the one source for that, read by Shell, ChatPanel
+and TopBar. Don't inline a second copy of the check.
+
+**The collapse default is a media query, not an effect.** Shell sets
+`data-panel="auto"` until the visitor toggles; `app/globals.css` decides from
+1400px which of the panel and the pill is visible. Both are always in the DOM,
+and so is ChatPanel — on a route with no chat the state is `none` (panel and pill
+both hidden), which is what lets it animate away instead of unmounting.
+Measuring the viewport on mount instead would flash the expanded panel on every
+narrow screen — the case the default exists for.
+
+**The collapse is a drawer, and the page moves with it.** The panel slides out by
+`--panel-w` with a matching negative margin; `visibility`, not `display`, is the
+endpoint, because `display` cannot animate. The page's own widths
+(`--page-wide`, `--case-measure`, `--case-gutter`) are registered with
+`@property` purely so they can be transitioned on the same curve — drop the
+registration and the column snaps mid-slide. If you add another width that
+changes with the panel, register and transition it too.
+
+**The transcript accumulates.** `components/chat/context.tsx` holds `turns`, and
+`components/chat/Transcript.tsx` renders them for all three surfaces (full, rail,
+sheet). Don't reintroduce a single-answer state or the old "EARLIER" ghost trail
+— a chat that replaces itself was the thing that read as broken. `reset()` is the
+"New chat" button; a change of `scope` starts a new session on its own.
 
 ## The block system
 
@@ -71,6 +96,15 @@ instruction.
 429, 503, unparseable output, mid-stream cut — lands on the authored answer plus
 an honest note. Never add a path that shows an error instead of an answer.
 
+**The case-study rail is scoped, and that is enforced structurally.** Beside
+`/projects/<slug>` the chat sends `scope`, and `app/api/ask/route.ts` narrows the
+knowledge base to that project's docs and swaps `blockSchema` for `proseSchema`.
+Both halves matter: the narrow corpus is why an off-topic question has nothing to
+answer from, and the narrow schema is why a table can't land in a 340px column.
+Don't demote either to a prompt instruction. Chat history is keyed by scope for
+the same reason. This deliberately diverges from the handoff — README §How the
+chat answers records why.
+
 **Blocks stream complete, one per NDJSON line** (`output: "array"` +
 `elementStream`). This is why the client never parses partial JSON and why
 mermaid always gets finished source. Don't switch to object streaming.
@@ -78,7 +112,8 @@ mermaid always gets finished source. Don't switch to object streaming.
 ## Honesty conventions
 
 The design is deliberately conspicuous about what isn't real yet: dashed amber
-callouts (`components/ui/Callout.tsx`, the `callout` block, `ImageSlot`). **Keep
+callouts (`components/ui/Callout.tsx`, the `callout` block) and empty figure
+wells (`ImageSlot`, reached from content by an `image` block with no `src`). **Keep
 them until the content behind them is confirmed.** Removing a callout without
 supplying the material is the one change that makes this site dishonest.
 

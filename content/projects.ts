@@ -1,5 +1,3 @@
-import type { TopicId } from "./answers.ts";
-
 // The project index. README is explicit that this page must stay data-driven —
 // "the project page is going to grow" — so this array drives /projects, the
 // Home feature grid, and every case study's STACK chips. Every count shown
@@ -34,8 +32,6 @@ export interface Project {
   badge: string;
   /** Has a full case study — the card routes to /projects/[slug]. */
   deep?: boolean;
-  /** No case study — the card opens this chat answer instead. */
-  ask?: TopicId | "work";
   blurb: string;
   stack: string[];
   metric: string;
@@ -76,7 +72,7 @@ export const projects: Project[] = [
     badge: "THESIS",
     deep: true,
     blurb:
-      "Sensor-grade congestion readings from CCTV alone — parallel YOLO11 models, optical flow, and an SVM over motion features instead of counts.",
+      "Sensor-grade congestion readings from CCTV alone — parallel YOLO11 models, four traffic-flow features, and a classifier that reads how traffic behaves instead of counting it.",
     stack: [
       "Python",
       "YOLO11",
@@ -85,9 +81,10 @@ export const projects: Project[] = [
       "Lucas-Kanade flow",
       "scikit-learn · SVM",
       "SSIM sampling",
+      "Roboflow",
     ],
-    metric: "97.4% at 14.4ms",
-    keys: "yolo opencv svm optical flow traffic cctv detection segmentation thesis python",
+    metric: "97.5% at 18–22 FPS",
+    keys: "yolo opencv svm neural network optical flow traffic congestion cctv malang detection segmentation occupancy density roboflow thesis python",
   },
   {
     slug: "talkative",
@@ -116,76 +113,6 @@ export const projects: Project[] = [
     stack: ["Swift", "Apple Vision", "CoreML", "Create ML", "AVFoundation"],
     metric: "<200ms per frame",
     keys: "pose coreml vision swift on-device offline fitness automaton classifier apple",
-  },
-  {
-    slug: "riset",
-    name: "Riset",
-    cat: "LLM & Agents",
-    year: 2026,
-    meta: "IN PROGRESS · SELF-DIRECTED",
-    badge: "IN PROGRESS",
-    ask: "rag",
-    blurb:
-      "An AI research agent for my content pipeline: arXiv and RSS ingestion, hybrid FAISS + BM25 retrieval fused with RRF, a 5-tool agent loop with per-step cost logging, and a RAGAS eval harness exposed as an MCP server.",
-    stack: ["Python", "Claude API", "FAISS", "BM25", "MCP"],
-    metric: "hybrid retrieval + evals",
-    keys: "rag retrieval hybrid rrf bm25 faiss agent mcp arxiv ragas eval embeddings tools python",
-  },
-  {
-    slug: "axrail-agent",
-    name: "Axrail commerce agent",
-    cat: "LLM & Agents",
-    year: 2026,
-    meta: "2026 · AXRAIL, AWS PARTNER",
-    badge: "PRODUCTION",
-    ask: "work",
-    blurb:
-      "Natural-language ordering over WebSocket, built on Bedrock Nova Lite and Strands Agents — Knowledge Base RAG, cross-session memory, live order-trend analysis and MCP tool orchestration in a 5-iteration loop.",
-    stack: ["AWS Bedrock", "Strands Agents", "Lambda", "WebSocket"],
-    metric: "0 critical pen-test findings",
-    keys: "bedrock aws agent rag memory mcp commerce websocket nova serverless guardrails",
-  },
-  {
-    slug: "padel",
-    name: "Padel court analytics",
-    cat: "Computer Vision",
-    year: 2026,
-    meta: "2026 · SELF-DIRECTED",
-    badge: "TRACKING",
-    ask: "cv",
-    blurb:
-      "Player tracking from broadcast footage onto a scaled 2D minimap via homography — a YOLO ByteTrack module with Hungarian spatial/HSV optimisation merged with a SAM 3 segmentation tracker that holds targets through heavy occlusion.",
-    stack: ["YOLO26", "SAM 3", "ByteTrack", "OpenCV"],
-    metric: "holds identity through occlusion",
-    keys: "yolo sam bytetrack tracking homography minimap sport occlusion hungarian hsv",
-  },
-  {
-    slug: "cire",
-    name: "Cire",
-    cat: "Computer Vision",
-    year: 2025,
-    meta: "2025 · APPLE DEVELOPER ACADEMY",
-    badge: "EDGE TO CLOUD",
-    ask: "cv",
-    blurb:
-      "An edge-to-cloud CV pipeline that decouples YOLOv11 inference from the analytics warehouse — async HTTP workers with intelligent batching cut API calls ~80% while holding 3 CCTV streams at 30 FPS.",
-    stack: ["YOLOv11", "Python", "async workers"],
-    metric: "~80% fewer API calls",
-    keys: "yolo edge cloud batching cctv streams throughput cost latency pipeline",
-  },
-  {
-    slug: "kinetix-monorepo",
-    name: "CV active learning monorepo",
-    cat: "Cloud & Infra",
-    year: 2026,
-    meta: "2026 · KINETIXPRO",
-    badge: "MLOPS",
-    ask: "work",
-    blurb:
-      "Eight microservices turning RTSP streams into a labelled, continuously-retrained dataset: YOLOv7 auto-labelling, dataset QA, GPU inference endpoints, and cloud sync — orchestrated with Docker Compose and the NVIDIA Container Toolkit.",
-    stack: ["Docker", "YOLOv7", "FFmpeg", "MediaMTX", "CUDA"],
-    metric: "8 services, one loop",
-    keys: "mlops docker gpu active learning labelling dataset rtsp ffmpeg pipeline infrastructure",
   },
 ];
 

@@ -91,7 +91,7 @@ export const FOCUS: Record<TopicId, Focus> = {
     k1: "RANGE",
     v1: "YOLO11 → YOLO26 · SAM 3 · CoreML",
     k2: "BEST",
-    v2: "97.4% congestion accuracy at 14.4ms",
+    v2: "97.5% congestion accuracy at 18–22 FPS",
   },
   datasaur: {
     title: "Datasaur",

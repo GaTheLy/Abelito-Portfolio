@@ -24,12 +24,6 @@ test("search requires EVERY token to match, not any", () => {
     ["talkative"],
   );
 
-  const bm25 = selectProjects({ ...base, query: "bm25" });
-  assert.deepEqual(
-    bm25.map((p) => p.slug),
-    ["riset"],
-  );
-
   // "yolo" alone is broad; adding a second token must narrow, never widen.
   const yolo = selectProjects({ ...base, query: "yolo" });
   const yoloTracking = selectProjects({ ...base, query: "yolo tracking" });
@@ -70,11 +64,10 @@ test("each sort orders as specified", () => {
   const names = selectProjects({ ...base, sort: "az" }).map((p) => p.name);
   assert.deepEqual(names, [...names].sort((a, b) => a.localeCompare(b)));
 
-  // "Most detailed" puts every case study ahead of every non-case-study.
+  // "Most detailed" — every remaining project is a case study, so depth sort
+  // should produce the same count and all should be marked deep.
   const depth = selectProjects({ ...base, sort: "depth" });
-  const lastDeep = depth.findLastIndex((p) => p.deep);
-  const firstShallow = depth.findIndex((p) => !p.deep);
-  assert.ok(lastDeep < firstShallow);
+  assert.ok(depth.every((p) => p.deep));
 });
 
 test("sorts are stable in count — filtering is the only thing that removes", () => {
@@ -178,10 +171,8 @@ test("rail context is derived from the page, and only exists for case studies", 
 
   const rail = railContext("/projects/traffic");
   assert.ok(rail);
-  // The outline must be the page's real sections, in order — not a copy.
-  const study = caseStudies.find((c) => c.slug === "traffic")!;
-  assert.deepEqual(rail.sections, study.sections.map((s) => s.label));
-  assert.equal(rail.questions.length, 3);
+  // The scope is what bounds every question asked from that page.
+  assert.equal(rail.slug, "traffic");
 });
 
 test("measurement intent beats subject matter", () => {

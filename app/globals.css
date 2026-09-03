@@ -89,6 +89,16 @@
   --radius-lg: 8px; /* cards, panels */
   --radius-xl: 10px; /* input bars, controls panel */
   --radius-pill: 100px;
+
+  /* The one raised surface in the design. Everything else sits flat on the
+     paper; the collapsed-chat pill floats over the page, so it needs to read as
+     above it rather than printed on it. */
+  --shadow-pill: 0 2px 6px rgb(23 22 15 / 0.09), 0 8px 24px rgb(23 22 15 / 0.11);
+
+  /* README §Motion's curve, as a token — the shell, the drawer and the page
+     reflow all have to move on the same one or the collapse reads as two
+     animations that happen to overlap. */
+  --ease-shell: cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
@@ -159,13 +169,18 @@ h3 {
 }
 
 /* ── Shell layout ─────────────────────────────────────────────────────────────
-   The single most important behaviour in the design: the chat panel is 704px on
-   Home (full mode, with a transcript) and 340px everywhere else (rail mode).
+   The chat panel is 704px on Home (full mode, with a transcript) and 340px
+   beside a case study (rail mode). Those are the only two routes it renders on.
 
-   Three tiers, so the desktop design is never compromised:
-     ≥1560px   exactly as designed
-     1000–1559 same two columns, chat clamped so the content column survives
-     <1000     single column; the panel becomes a bottom sheet
+     ≥1652px   exactly as designed — 704px chat, Home's 860px column intact
+     1024–1651 the PANEL yields, never the content: it shrinks to whatever is
+               left once Home's 860px column and its 44px gutters are paid for,
+               down to a 360px floor
+     <1024     single column; the panel becomes a bottom sheet
+
+   The old rule clamped the panel at 42vw instead, which on a 1512px laptop left
+   the content column 877px for a band that needs 948 — so the thing the design
+   is actually about got squeezed while the chat kept its width. Backwards.
 
    The width change is a plain CSS transition on flex-basis. Framer Motion is
    reserved for the interactions CSS genuinely can't do well (drag-to-dismiss,
@@ -173,24 +188,163 @@ h3 {
    ──────────────────────────────────────────────────────────────────────────── */
 
 .shell-panel {
-  flex: 0 0 340px;
-  transition: flex-basis 0.38s cubic-bezier(0.2, 0.7, 0.3, 1);
+  --panel-w: 340px;
+  flex: 0 0 var(--panel-w);
+  transition:
+    flex-basis 0.38s var(--ease-shell),
+    margin-inline-end 0.42s var(--ease-shell),
+    translate 0.42s var(--ease-shell),
+    opacity 0.26s ease-out 0.08s,
+    visibility 0.42s;
 }
 
 .shell-body[data-mode="full"] .shell-panel {
-  flex-basis: 704px;
+  /* 948px = Home's 860px band + its two 44px gutters. */
+  --panel-w: clamp(360px, 100vw - 948px, 704px);
 }
 
-@media (max-width: 1559px) {
-  .shell-body[data-mode="full"] .shell-panel {
-    flex-basis: min(704px, 42vw);
+/* ── Collapsing ───────────────────────────────────────────────────────────────
+   Three states on .shell-body, set in components/Shell.tsx:
+
+     open     the visitor opened it
+     closed   the visitor closed it — the pill is the way back in
+     none     this route has no chat at all; no panel, and no pill either
+     auto     nobody has said — the media query below decides
+
+   `auto` is why the default costs nothing at hydration: no effect measures the
+   viewport, so nothing flashes on the narrow screens the default exists for.
+   1400px is the width below which the panel starts taking room the page wants.
+
+   The panel and the pill are both in the DOM; exactly one is ever visible.
+
+   It closes as a drawer rather than by `display: none`, which cannot animate:
+   the panel keeps its full width and slides out by exactly that width, while a
+   negative margin of the same size pulls the page across behind it. Animating
+   `flex-basis` to 0 instead would squeeze the panel's own contents to nothing
+   on the way out — every line inside it re-wrapping, 40 times, for no reason.
+
+   `visibility` rather than `display` for the endpoint: it is animatable (it
+   holds until the transition ends, then hides), so the panel stops being
+   focusable without costing the animation. */
+
+.shell-body[data-panel="closed"] .shell-panel,
+.shell-body[data-panel="none"] .shell-panel {
+  margin-inline-end: calc(var(--panel-w) * -1);
+  translate: 100% 0;
+  opacity: 0;
+  visibility: hidden;
+  /* Delays belong to the state being entered — leaving is immediate, arriving
+     waits for the other affordance to clear. */
+  transition-delay: 0s;
+}
+
+.shell-body[data-panel="open"] .shell-pill,
+.shell-body[data-panel="none"] .shell-pill {
+  opacity: 0;
+  translate: 0 14px;
+  visibility: hidden;
+  transition-delay: 0s;
+  transition-duration: 0.18s;
+}
+
+@media (max-width: 1399px) {
+  .shell-body[data-panel="auto"] .shell-panel {
+    margin-inline-end: calc(var(--panel-w) * -1);
+    translate: 100% 0;
+    opacity: 0;
+    visibility: hidden;
+    transition-delay: 0s;
+  }
+}
+@media (min-width: 1400px) {
+  .shell-body[data-panel="auto"] .shell-pill {
+    opacity: 0;
+    translate: 0 14px;
+    visibility: hidden;
+    transition-delay: 0s;
+    transition-duration: 0.18s;
   }
 }
 
-/* Below Tailwind's `lg` the panel is replaced by the mobile sheet. Keeping the
-   two in step means components can use plain `lg:` prefixes. */
+/* Arrives after the panel is out of the way, leaves at once. */
+.shell-pill {
+  transition:
+    opacity 0.24s ease-out 0.2s,
+    translate 0.34s var(--ease-shell) 0.2s,
+    visibility 0.54s;
+}
+
+/* ── What the page does with the width back ───────────────────────────────────
+   Content is centred at every width (see components/ui/Page.tsx) — pinning it
+   left is what turned a collapsed panel into 466px of dead margin on one side.
+
+   With no panel competing, a case study also gets a longer measure and a wider
+   gutter, so the extra width is spent on the reading rather than banked as more
+   margin. 72ch is still inside the comfortable 65–75ch range. */
+
+/* Registered so they can be transitioned. An unregistered custom property is a
+   string substitution and jumps between values — which would snap the page to
+   its new measure in one frame while the drawer was still sliding, the exact
+   seam this is meant to hide. `initial-value` must be font-independent, so it is
+   px here even though the declared value is `ch`. */
+@property --page-wide {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 1120px;
+}
+@property --case-measure {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 680px;
+}
+@property --case-gutter {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 148px;
+}
+
+.shell-body {
+  --page-wide: 1120px;
+  --case-measure: 72ch;
+  --case-gutter: 148px;
+
+  /* Same curve and duration as the drawer, so the column and the panel move as
+     one gesture instead of two. */
+  transition:
+    --page-wide 0.42s var(--ease-shell),
+    --case-measure 0.42s var(--ease-shell),
+    --case-gutter 0.42s var(--ease-shell);
+}
+
+.shell-body[data-panel="closed"],
+.shell-body[data-panel="none"] {
+  --page-wide: 1340px;
+  --case-measure: 84ch;
+  --case-gutter: 184px;
+}
+
+@media (max-width: 1399px) {
+  .shell-body[data-panel="auto"] {
+    --page-wide: 1340px;
+    --case-measure: 84ch;
+    --case-gutter: 184px;
+  }
+}
+
+/* Contents gutter + gap + measure. The case study's headline, meta strip and
+   footer are held to this too, so the whole page shares one left edge instead of
+   the body indenting away from the header when the measure changes. Keep the
+   3.5rem in step with the grid's `lg:gap-14`. */
+.shell-body {
+  --case-column: calc(var(--case-gutter) + 3.5rem + var(--case-measure));
+}
+
+/* Below Tailwind's `lg` the panel is replaced by the mobile sheet, and the pill
+   would be a second door to the same room. Keeping this in step with `lg:`
+   means components can use plain `lg:` prefixes. */
 @media (max-width: 1023px) {
-  .shell-panel {
+  .shell-panel,
+  .shell-pill {
     display: none;
   }
 }

@@ -29,7 +29,7 @@ const PILLARS = [
 // Home is two stacked bands rather than one padded column, because the second
 // band carries its own tint edge-to-edge. Horizontal padding therefore lives on
 // each band, not on the page wrapper.
-const PAD = "px-5 lg:px-11";
+const PAD = "px-5 lg:px-8 xl:px-11";
 
 export default function HomePage() {
   const featured = caseStudySlugs
@@ -37,7 +37,7 @@ export default function HomePage() {
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
   return (
-    <div className="animate-rise max-w-[860px] pb-14">
+    <div className="animate-rise mx-auto max-w-[860px] pb-20">
       {/* ── Band 1: byline, headline, actions, proof ─────────────────────── */}
       <div className={`${PAD} pt-8 lg:pt-11`}>
         <div className="mb-5 flex items-center gap-3">

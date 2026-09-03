@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { Block } from "@/lib/blocks";
 import { inline } from "@/lib/inline";
 import { useChat } from "@/components/chat/context";
+import ImageSlot from "@/components/ui/ImageSlot";
 import Mermaid from "./Mermaid";
 import CodeBlock from "./CodeBlock";
 
@@ -149,6 +151,28 @@ function BlockView({
     case "mermaid":
       return (
         <Mermaid kind={block.kind} code={block.code} alt={block.alt} complete={complete} />
+      );
+
+    case "image":
+      // No src yet — the dashed well says what's missing instead of pretending.
+      if (!block.src) return <ImageSlot ratio={block.ratio} prompt={block.caption} />;
+      return (
+        <figure className="m-0 overflow-hidden rounded-md border border-divider bg-raised-alt2">
+          <div className="relative w-full" style={{ aspectRatio: block.ratio }}>
+            <Image
+              src={block.src}
+              alt={block.alt ?? block.caption}
+              fill
+              // object-contain: a screenshot cropped to fit is a screenshot
+              // with the numbers cut off.
+              className="object-contain"
+              sizes="(max-width: 900px) 100vw, 700px"
+            />
+          </div>
+          <figcaption className="border-t border-border-faint bg-bar px-3 py-[7px] font-mono text-[9px] tracking-[0.1em] text-ink-label uppercase">
+            {block.caption}
+          </figcaption>
+        </figure>
       );
 
     case "metrics":

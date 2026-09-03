@@ -145,7 +145,7 @@ const raw: Record<TopicId, BlockInput[]> = {
       type: "table",
       columns: [{ label: "SYSTEM" }, { label: "HARD PART" }, { label: "RESULT", align: "right" }],
       rows: [
-        { cells: ["Traffic congestion", "flow, not counts", "97.4% · 14.4ms"], highlight: true },
+        { cells: ["Traffic congestion", "flow, not counts", "97.5% · 18–22 FPS"], highlight: true },
         { cells: ["Padel analytics", "occlusion, identity", "YOLO26 + SAM 3"] },
         { cells: ["Cire", "cost per API call", "~80% fewer calls"] },
         { cells: ["GerakinAja", "on-device latency", "<200ms/frame"] },

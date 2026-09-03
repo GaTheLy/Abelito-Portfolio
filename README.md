@@ -99,7 +99,36 @@ Three decisions carry most of the weight:
 
 **1. The chat panel lives in the root layout.** It never remounts on navigation
 — that persistence is the entire premise of the design. Pages are just
-`children`.
+`children`. It renders on exactly two kinds of route — Home and
+`/projects/<slug>` — because those are the two where it is a chat rather than a
+launcher; elsewhere it was a column of chips that navigated you away, so the
+page takes the width back and the top bar carries an **Ask** link instead.
+
+On both it collapses to a floating **Ask** pill, the same affordance the mobile
+sheet uses. `.shell-body[data-panel]` carries four states — `open`, `closed`,
+`none` (this route has no chat, so no pill either) and `auto` — and `auto` is the
+default: a media query opens the panel at ≥1400px and
+collapses it below, so the sensible default costs nothing at hydration. Reading
+`window.innerWidth` in an effect would have rendered the panel expanded and
+collapsed it a frame later, flashing on exactly the narrow screens the default
+exists to help. The moment the visitor toggles it, their choice wins and nothing
+— resizing included — overrides it.
+
+It closes as a **drawer**, not a `display: none`: the panel keeps its width and
+slides out by exactly that width while a negative margin of the same size pulls
+the page across behind it. Collapsing `flex-basis` to 0 instead would squeeze the
+panel's own contents to nothing on the way out, re-wrapping every line in it for
+40 frames. `visibility` is the endpoint rather than `display`, because it is
+animatable — it holds until the transition ends, then stops the panel being
+focusable.
+
+The page has to move on the same gesture or the seam shows, so `--page-wide`,
+`--case-measure` and `--case-gutter` are registered with `@property` and
+transitioned on the same curve. An unregistered custom property is a string
+substitution and would snap the column to its new measure in one frame while the
+drawer was still travelling. ChatPanel is mounted on every route for the same
+reason — on a route with no chat it slides away rather than blinking out with the
+old page.
 
 **2. One block schema, three consumers.** `lib/blocks.ts` is a Zod discriminated
 union rendered by `components/blocks/BlockList.tsx`. The same schema backs the
@@ -121,6 +150,22 @@ POST /api/ask → keyword-route the question
               → else stream blocks (one complete block per NDJSON line)
 ```
 
+**Beside a case study the chat is scoped to that project.** The rail sends
+`scope: "<slug>"`, and the route narrows the knowledge base to that one project's
+docs, swaps `blockSchema` for `proseSchema` (text and list only), and answers in
+place instead of navigating Home. A question about anything else has nothing to
+answer from, so the scope is enforced by what the model can see rather than only
+by being asked nicely — and a 340px column can't render a table or a diagram, so
+the schema makes that structural too. Conversation memory is keyed by scope: a
+project rail neither inherits from nor leaks into the unscoped chat. Guarded
+topics behave exactly as they do everywhere else; the rail just serves the prose
+blocks of the same authored answers.
+
+This diverges from the handoff (appendix, *Rail mode*), which had the rail
+listing a case study's sections and every question navigating Home. The outline
+now lives in the page's own left column, where an entry is an anchor that moves
+the reader rather than a label that can't.
+
 **Guardrails are hard-routed, not prompted.** `rate`, `good` and `datasaur` are
 product decisions — refusing to invent a rate, being straight about a two-month
 stint, admitting what's still early — so they never reach the model. That
@@ -140,9 +185,23 @@ Three tiers, so the desktop design is never compromised:
 
 | Width | Layout |
 |---|---|
-| ≥1560px | exactly as designed — 704px chat on Home, 340px elsewhere |
-| 1024–1559px | same two columns, chat clamped so the content column survives |
+| ≥1652px | exactly as designed — 704px chat on Home, 340px on a case study |
+| 1024–1651px | same two columns; the **panel** yields, never the content — `clamp(360px, 100vw - 948px, 704px)`, where 948px is Home's 860px band plus its gutters |
 | <1024px | single column; the chat becomes a bottom sheet |
+
+Content is centred at every width. Left-pinned is what turned a collapsed panel
+into 466px of dead margin on one side; the amount of white space was fine, its
+position wasn't. With no panel competing, a case study also widens: `--case-
+gutter` 138→170px and `--case-measure` 64→72ch, so the reclaimed width is spent
+on the reading rather than banked as more margin. Its headline, meta strip, body
+and footer all sit in one `--case-column`, so they share a left edge whichever
+measure is in play.
+
+The panel used to clamp at `42vw`, which on a 1512px laptop left the content
+column 877px for a band that needs 948 — the design got squeezed while the chat
+kept its width. The shell also carried a hard `min-height: 820px`, which on any
+laptop shorter than that pushed the top bar and the ask bar off-screen. Both
+gone: the shell is exactly `100dvh` and everything inside scrolls on its own.
 
 The sheet is a native `<dialog>` opened with `showModal()` — focus trapping,
 Esc-to-close and page inertness for free.
@@ -161,6 +220,14 @@ That conspicuousness is deliberate — don't style it down, fill it in.
 | **The About prose** | `content/about.ts` — chapters, the three turns, and "where I'm going" are a *draft of your voice*, reconstructed from your CV and one conversation. Dates, roles, metrics and awards are sourced; memories and motivations are not. |
 | Manna "What broke" | inferred — confirm the specifics |
 | Academy phase dates | Talkative and GerakinAja timelines |
+| **7 traffic-thesis figures** | `content/case-studies.ts` — every `image` block with no `src` is a dashed slot. Drop the PNG in `public/assets/traffic/` and set `src`; the caption is already written. |
+| Traffic phase dates | the slides carry none |
+| Traffic speed / sampling method | the slides don't name either, but the STACK still lists Lucas-Kanade and SSIM |
+
+The `image` block is the mechanism: with a `src` it renders the figure and a
+caption bar, without one it renders `ImageSlot`'s dashed well showing what the
+figure should be. Same block either way, so filling a slot is a one-line edit
+and the chat's corpus stops describing it as missing.
 
 **The four architecture diagrams are done.** They were only blocked when they
 needed exported images; as mermaid they're authored source in

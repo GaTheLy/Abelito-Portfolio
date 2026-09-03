@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FOCUS, QLABEL, MOST_ASKED, WELCOME } from "@/content/answers";
-import { answerBlocks } from "@/content/answer-blocks";
-import BlockList from "@/components/blocks/BlockList";
+import Transcript from "./Transcript";
 import ChatInput from "./ChatInput";
 import { useChat } from "./context";
 
@@ -41,11 +40,10 @@ export default function MobileSheet() {
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
-  const { topic, question, blocks, streaming, error, answerSeq, started, ask } =
-    useChat();
+  const { turns, started, ask, reset } = useChat();
 
-  const shown = blocks ?? answerBlocks[topic];
-  const focus = FOCUS[topic];
+  // The sheet is titled by whatever was asked last.
+  const focus = FOCUS[turns[turns.length - 1]?.topic ?? "rag"];
 
   // Drive the native dialog from React state, and keep them in sync when the
   // browser closes it for us (Esc, backdrop).
@@ -59,10 +57,10 @@ export default function MobileSheet() {
   // A new answer (from a chip somewhere in the page) should surface the sheet.
   // Adjusted during render rather than in an effect — React's documented
   // pattern for reacting to a changed value, and it avoids the extra paint.
-  const [seenSeq, setSeenSeq] = useState(answerSeq);
-  if (answerSeq !== seenSeq) {
-    setSeenSeq(answerSeq);
-    if (isSheet) setOpen(true);
+  const [seenTurns, setSeenTurns] = useState(turns.length);
+  if (turns.length !== seenTurns) {
+    setSeenTurns(turns.length);
+    if (isSheet && turns.length > 0) setOpen(true);
   }
 
   return (
@@ -115,51 +113,38 @@ export default function MobileSheet() {
                 }}
                 className="flex h-[85vh] w-full flex-col rounded-t-2xl border-t border-divider bg-surface"
               >
-                <div className="flex flex-none items-center justify-between border-b border-divider px-4 pt-2 pb-3">
+                <div className="flex flex-none items-center justify-between gap-3 border-b border-divider px-4 pt-2 pb-3">
                   <span
                     aria-hidden
                     className="absolute inset-x-0 top-2 mx-auto h-1 w-9 rounded-full bg-border-input"
                   />
-                  <span className="mt-3 text-[12.5px] font-semibold text-ink">
+                  <span className="mt-3 min-w-0 flex-1 truncate text-[12.5px] font-semibold text-ink">
                     {started ? focus.title : "Ask about Abelito"}
                   </span>
+                  {started ? (
+                    <button
+                      type="button"
+                      onClick={reset}
+                      className="mt-3 flex-none font-mono text-[9.5px] tracking-[0.1em] text-ink-faint uppercase"
+                    >
+                      New chat
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="mt-3 font-mono text-[9.5px] tracking-[0.1em] text-ink-faint uppercase"
+                    className="mt-3 flex-none font-mono text-[9.5px] tracking-[0.1em] text-ink-faint uppercase"
                   >
                     Close
                   </button>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-2">
-                  {started ? (
-                    <>
-                      <div className="mb-3.5 max-w-[86%] self-end rounded-[13px_13px_3px_13px] bg-ink px-3.5 py-2.5 text-[13px]/[1.45] text-surface">
-                        {question}
-                      </div>
-
-                      <div aria-live="polite" aria-busy={streaming}>
-                        <BlockList
-                          blocks={shown}
-                          variant="chat"
-                          complete={!streaming}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <p className="m-0 text-[13.5px]/[1.65] text-ink-body">
-                      {WELCOME}
-                    </p>
+                <Transcript turns={turns} className="px-4 pt-4 pb-2">
+                  {started ? null : (
+                    <p className="m-0 text-[13.5px]/[1.65] text-ink-body">{WELCOME}</p>
                   )}
 
-                  {error ? (
-                    <p className="mt-3 mb-0 rounded-sm border border-amber-border bg-amber-fill px-3 py-2 font-mono text-[9.5px]/[1.5] text-amber-ink-deep">
-                      {error}
-                    </p>
-                  ) : null}
-
-                  <div className="mt-4 flex flex-wrap gap-[7px] pb-2">
+                  <div className="mt-1 flex flex-wrap gap-[7px] pb-2">
                     <span className="self-center font-mono text-[9px] tracking-[0.12em] text-ink-faintest uppercase">
                       {started ? "Try" : "Start with"}
                     </span>
@@ -174,7 +159,7 @@ export default function MobileSheet() {
                       </button>
                     ))}
                   </div>
-                </div>
+                </Transcript>
 
                 <ChatInput />
               </motion.div>

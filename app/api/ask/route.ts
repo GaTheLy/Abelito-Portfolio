@@ -1,13 +1,19 @@
 import { streamObject, APICallError } from "ai";
-import { blockSchema } from "@/lib/blocks";
+import { blockSchema, proseSchema, proseOnly, isProse, type Block } from "@/lib/blocks";
 import { GUARDED, routeQuestion, type TopicId } from "@/content/answers";
 import { answerBlocks } from "@/content/answer-blocks";
-import { SYSTEM_PROMPT } from "@/lib/prompt";
+import { caseStudyBySlug } from "@/content/case-studies";
+import { projectBySlug } from "@/content/projects";
+import { SYSTEM_PROMPT, scopedPrompt } from "@/lib/prompt";
 import { resolveModel } from "@/lib/model";
 
 // The chat's brain.
 //
-//   POST /api/ask  { question, history? }  →  NDJSON stream
+//   POST /api/ask  { question, history?, scope? }  →  NDJSON stream
+//
+// `scope` is a case-study slug. It comes from the rail beside that case study,
+// and it changes two things: the knowledge base narrows to that one project, and
+// the model is constrained to prose (proseSchema + scopedPrompt).
 //
 // Response protocol, one JSON object per line:
 //   {"type":"meta","topic":"rag"}         … first, so IN FOCUS can update
@@ -33,6 +39,8 @@ export const maxDuration = 30;
  *  duplicate tables. A hard stop keeps a degenerate response from rendering a
  *  wall of markup and burning output tokens. */
 const MAX_BLOCKS = 12;
+/** The rail is a paragraph, not a dossier. */
+const MAX_RAIL_BLOCKS = 3;
 
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 12;
@@ -129,16 +137,34 @@ function inspect(error: unknown, depth = 0): { names: string[]; status?: number 
   return { names, status };
 }
 
-/** The authored answer for a topic, as a finished NDJSON stream. Used for the
- *  guarded topics, when there's no credential, and whenever the model path
- *  fails — the site is never without an answer. */
-function authoredStream(topic: TopicId, note?: string): Response {
+/** The case study a `scope` refers to, plus the prose the rail falls back to.
+ *  Null for anything that isn't a real case-study slug — an unknown scope is
+ *  treated as no scope, never as an error. */
+function resolveScope(raw: unknown) {
+  if (typeof raw !== "string") return null;
+  const study = caseStudyBySlug(raw);
+  if (!study) return null;
+
+  // The page's own opening prose, reused as the offline/failure answer. Falls
+  // back to the standfirst so this is never empty.
+  const overview = proseOnly(study.sections[0]?.blocks ?? []);
+  return {
+    slug: study.slug,
+    title: study.h1,
+    name: projectBySlug(study.slug)?.name ?? study.slug,
+    fallback: overview.length ? overview : [{ type: "text" as const, md: study.standfirst }],
+  };
+}
+
+/** Written blocks as a finished NDJSON stream. Used for the guarded topics, when
+ *  there's no credential, and whenever the model path fails — the site is never
+ *  without an answer. `blocks` is the whole authored answer normally, and its
+ *  prose subset in the rail. */
+function authoredStream(topic: TopicId, blocks: Block[], note?: string): Response {
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       controller.enqueue(line({ type: "meta", topic, source: "authored" }));
-      for (const block of answerBlocks[topic]) {
-        controller.enqueue(line({ type: "block", block }));
-      }
+      for (const block of blocks) controller.enqueue(line({ type: "block", block }));
       if (note) controller.enqueue(line({ type: "error", message: note }));
       controller.enqueue(line({ type: "done", source: "authored" }));
       controller.close();
@@ -159,21 +185,32 @@ export async function POST(req: Request) {
   if (!question) return Response.json({ error: "empty question" }, { status: 400 });
 
   const topic = routeQuestion(question);
+  // Set by the rail beside a case study: that project is the whole world for
+  // this request. Anything else is treated as unscoped.
+  const scope = resolveScope(body?.scope);
+
+  // The written answer this request falls back to, at the width it will be
+  // rendered at: the whole authored answer normally, prose only in the rail.
+  const written = scope ? scope.fallback : answerBlocks[topic];
 
   // Guardrails are hard-routed, not prompted. Refusing to invent a rate, being
   // straight about a two-month stint, and admitting what's still early are
   // product decisions — they must not depend on the model complying, so these
-  // three never reach it. README §Guardrails.
-  if (GUARDED.includes(topic)) return authoredStream(topic);
+  // three never reach it. README §Guardrails. The rail serves the same answers
+  // minus the blocks that don't fit — the decision is unchanged, only the width.
+  if (GUARDED.includes(topic)) {
+    const guarded = answerBlocks[topic];
+    return authoredStream(topic, scope ? proseOnly(guarded) : guarded);
+  }
 
   if (!allow(ip)) {
-    return authoredStream(topic, "That's a lot of questions in a minute — here's the short version while the rate limit cools off.");
+    return authoredStream(topic, written, "That's a lot of questions in a minute — here's the short version while the rate limit cools off.");
   }
 
   // No credential at all — the whole site still works, it just serves the
   // authored answers.
   const resolved = resolveModel();
-  if (!resolved) return authoredStream(topic);
+  if (!resolved) return authoredStream(topic, written);
 
   const history = cleanHistory(body?.history);
 
@@ -189,11 +226,13 @@ export async function POST(req: Request) {
         failure = error;
       },
       output: "array",
-      schema: blockSchema,
-      system: SYSTEM_PROMPT,
+      // Prose-only in the rail, and structurally so: the model is not trusted
+      // to keep a table out of a 340px column, it is unable to emit one.
+      schema: scope ? proseSchema : blockSchema,
+      system: scope ? scopedPrompt(scope.slug, scope.name, scope.title) : SYSTEM_PROMPT,
       messages: [...history, { role: "user" as const, content: question }],
       temperature: 0.3,
-      maxOutputTokens: 2000,
+      maxOutputTokens: scope ? 600 : 2000,
       providerOptions: {
         ...resolved.options,
         // The corpus is a stable ~11k-token prefix on every request. Anthropic
@@ -218,12 +257,14 @@ export async function POST(req: Request) {
             // Re-validate: elementStream is already schema-shaped, but this is
             // untrusted generated content heading for a renderer.
             const parsed = blockSchema.safeParse(element);
-            if (parsed.success) {
+            // A provider that doesn't enforce the schema (Gemini) can still emit
+            // a table into the rail; drop it rather than render it there.
+            if (parsed.success && (!scope || isProse(parsed.data))) {
               controller.enqueue(line({ type: "block", block: parsed.data }));
               if (parsed.data.type === "followups") sawFollowups = true;
               count += 1;
-              if (count >= MAX_BLOCKS) break;
-            } else {
+              if (count >= (scope ? MAX_RAIL_BLOCKS : MAX_BLOCKS)) break;
+            } else if (!parsed.success) {
               // Kept deliberately: a dropped block is otherwise indistinguishable
               // from a model with nothing to say, which is exactly the blind spot
               // that hid the first gateway failure.
@@ -239,9 +280,9 @@ export async function POST(req: Request) {
         }
 
         if (count === 0) {
-          // Nothing usable came back. Serve the authored answer whole, and say
+          // Nothing usable came back. Serve the written answer whole, and say
           // so — a silent swap is the one thing this must never do.
-          for (const block of answerBlocks[topic]) {
+          for (const block of written) {
             controller.enqueue(line({ type: "block", block }));
           }
           // A model that returned nothing is not the same as one that errored;
@@ -257,7 +298,7 @@ export async function POST(req: Request) {
           controller.enqueue(line({ type: "done", source: "authored" }));
         } else if (failure) {
           // Cut off mid-answer. Keep what arrived, top up from the authored one.
-          for (const block of answerBlocks[topic].slice(count)) {
+          for (const block of written.slice(count)) {
             controller.enqueue(line({ type: "block", block }));
           }
           controller.enqueue(
@@ -269,7 +310,10 @@ export async function POST(req: Request) {
           // than left to prompt compliance — Gemini omits the block routinely
           // however firmly it is asked. Falls back to the authored topic's own
           // follow-ups, which are already hand-written and on-topic.
-          if (!sawFollowups) {
+          // The rail has the project's own questions printed under the answer,
+          // so it never dead-ends without them — and `followups` isn't in its
+          // schema anyway.
+          if (!sawFollowups && !scope) {
             const authored = answerBlocks[topic].find((b) => b.type === "followups");
             if (authored) controller.enqueue(line({ type: "block", block: authored }));
           }
@@ -288,6 +332,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     // Thrown before the stream even opened.
-    return authoredStream(topic, noteFor(error));
+    return authoredStream(topic, written, noteFor(error));
   }
 }
