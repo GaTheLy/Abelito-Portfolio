@@ -23,9 +23,7 @@ export default function Page({
 }) {
   return (
     <div
-      className={`animate-rise mx-auto px-5 pt-8 pb-24 lg:px-9 lg:pt-12 lg:pb-20 xl:px-14 ${
-        wide ? "max-w-[var(--page-wide)]" : "max-w-[1000px]"
-      } ${className}`}
+      className={`animate-rise mx-auto max-w-[var(--page-wide)] px-5 pt-8 pb-24 lg:px-9 lg:pt-12 lg:pb-20 xl:px-14 ${className}`}
     >
       {children}
     </div>

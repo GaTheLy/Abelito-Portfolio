@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { hasChatPanel } from "@/content/case-studies";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -87,16 +86,6 @@ export default function TopBar() {
 
       <div className="flex flex-1 items-center justify-end gap-3 lg:gap-4">
         <span className="t-meta text-ink-faint max-xl:hidden">MALANG · GMT+7</span>
-        {/* Only where the panel isn't. Below `lg` the bottom sheet is the way
-            in on every route, so this would be a second door to the same room. */}
-        {hasChatPanel(pathname) ? null : (
-          <Link
-            href="/"
-            className="t-ui flex-none rounded-pill border border-border-input px-[13px] py-[7px] text-ink-body transition-colors hover:border-green hover:text-green max-lg:hidden"
-          >
-            Ask
-          </Link>
-        )}
         <Link
           href="/connect"
           className="t-ui rounded-pill bg-green px-[15px] py-2 text-surface transition-colors hover:bg-green-dark"

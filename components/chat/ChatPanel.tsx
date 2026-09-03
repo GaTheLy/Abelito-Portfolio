@@ -53,13 +53,17 @@ export default function ChatPanel({
                 {scope ? `Ask about ${scope.name}` : "Ask me anything"}
               </span>
             </div>
+            {/* Collapse button — large enough to hit comfortably */}
             <button
               type="button"
               onClick={() => onToggle(false)}
-              aria-label="Hide the chat"
-              className="t-ui flex-none rounded-nav px-2 py-0.5 text-ink-faint transition-colors hover:bg-well hover:text-green"
+              aria-label="Collapse chat"
+              title="Collapse chat"
+              className="flex-none rounded-lg p-2 text-ink-faint transition-colors hover:bg-well hover:text-green"
             >
-              ›
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+                <path d="M5.5 2.5L10 7.5L5.5 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
 
@@ -67,7 +71,8 @@ export default function ChatPanel({
             <span className="font-mono text-[9.5px] tracking-[0.06em] text-ink-faint uppercase">
               {scope ? "This project only" : `Grounded in ${docCount} docs`}
             </span>
-            {started ? (
+            {/* New chat only makes sense on Home — the rail starts fresh per project */}
+            {!scope && started ? (
               <button
                 type="button"
                 onClick={reset}
