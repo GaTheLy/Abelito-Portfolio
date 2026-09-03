@@ -39,7 +39,7 @@ export default function Shell({
    * overrides them — resizing included.
    *
    * `none` is a separate state from `closed` on purpose: both hide the panel and
-   * widen the page, but `closed` leaves the pill as the way back in and `none`
+   * widen the page, but `closed` leaves the spine as the way back in and `none`
    * does not, because on those routes there is deliberately no chat to reopen.
    * Keeping them distinct is what lets ChatPanel stay mounted everywhere, so the
    * panel slides away on navigation instead of blinking out of existence.

@@ -90,11 +90,6 @@
   --radius-xl: 10px; /* input bars, controls panel */
   --radius-pill: 100px;
 
-  /* The one raised surface in the design. Everything else sits flat on the
-     paper; the collapsed-chat pill floats over the page, so it needs to read as
-     above it rather than printed on it. */
-  --shadow-pill: 0 2px 6px rgb(23 22 15 / 0.09), 0 8px 24px rgb(23 22 15 / 0.11);
-
   /* README §Motion's curve, as a token — the shell, the drawer and the page
      reflow all have to move on the same one or the collapse reads as two
      animations that happen to overlap. */
@@ -199,23 +194,25 @@ h3 {
 }
 
 .shell-body[data-mode="full"] .shell-panel {
-  /* 948px = Home's 860px band + its two 44px gutters. */
-  --panel-w: clamp(360px, 100vw - 948px, 704px);
+  /* Home's band is the same reading column as every other page
+     (--case-column) plus its own 44px padding; add the two 44px outer gutters
+     and that is the width the page must keep before the panel may take any. */
+  --panel-w: clamp(360px, 100vw - (var(--case-column) + 11rem), 704px);
 }
 
 /* ── Collapsing ───────────────────────────────────────────────────────────────
    Three states on .shell-body, set in components/Shell.tsx:
 
      open     the visitor opened it
-     closed   the visitor closed it — the pill is the way back in
-     none     this route has no chat at all; no panel, and no pill either
+     closed   the visitor closed it — the spine is the way back in
+     none     this route has no chat at all; no panel, and no spine either
      auto     nobody has said — the media query below decides
 
    `auto` is why the default costs nothing at hydration: no effect measures the
    viewport, so nothing flashes on the narrow screens the default exists for.
    1400px is the width below which the panel starts taking room the page wants.
 
-   The panel and the pill are both in the DOM; exactly one is ever visible.
+   The panel and the spine are both in the DOM; exactly one is ever visible.
 
    It closes as a drawer rather than by `display: none`, which cannot animate:
    the panel keeps its full width and slides out by exactly that width, while a
@@ -238,13 +235,12 @@ h3 {
   transition-delay: 0s;
 }
 
-.shell-body[data-panel="open"] .shell-pill,
-.shell-body[data-panel="none"] .shell-pill {
+.shell-body[data-panel="open"] .shell-spine,
+.shell-body[data-panel="none"] .shell-spine {
+  --spine-w: 0px;
   opacity: 0;
-  translate: 0 14px;
   visibility: hidden;
   transition-delay: 0s;
-  transition-duration: 0.18s;
 }
 
 @media (max-width: 1399px) {
@@ -257,21 +253,29 @@ h3 {
   }
 }
 @media (min-width: 1400px) {
-  .shell-body[data-panel="auto"] .shell-pill {
+  .shell-body[data-panel="auto"] .shell-spine {
+    --spine-w: 0px;
     opacity: 0;
-    translate: 0 14px;
     visibility: hidden;
     transition-delay: 0s;
-    transition-duration: 0.18s;
   }
 }
 
-/* Arrives after the panel is out of the way, leaves at once. */
-.shell-pill {
+/* The collapsed panel is a folded spine, not a floating button. It is a flex
+   item in the same row as the panel, so the page never has a layer hovering
+   over it and the width it gives back is continuous: 46px, not 0.
+
+   Same `flex-basis` + custom-property trick as .shell-panel above — the
+   substituted length is what flex-basis transitions between.
+
+   Arrives after the drawer is out of the way, leaves at once. */
+.shell-spine {
+  --spine-w: 48px;
+  flex: 0 0 var(--spine-w);
   transition:
-    opacity 0.24s ease-out 0.2s,
-    translate 0.34s var(--ease-shell) 0.2s,
-    visibility 0.54s;
+    flex-basis 0.38s var(--ease-shell),
+    opacity 0.24s ease-out 0.16s,
+    visibility 0.46s;
 }
 
 /* ── What the page does with the width back ───────────────────────────────────
@@ -339,12 +343,12 @@ h3 {
   --case-column: calc(var(--case-gutter) + 3.5rem + var(--case-measure));
 }
 
-/* Below Tailwind's `lg` the panel is replaced by the mobile sheet, and the pill
+/* Below Tailwind's `lg` the panel is replaced by the mobile sheet, and the spine
    would be a second door to the same room. Keeping this in step with `lg:`
    means components can use plain `lg:` prefixes. */
 @media (max-width: 1023px) {
   .shell-panel,
-  .shell-pill {
+  .shell-spine {
     display: none;
   }
 }

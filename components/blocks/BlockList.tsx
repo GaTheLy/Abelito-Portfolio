@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Block } from "@/lib/blocks";
 import { inline } from "@/lib/inline";
 import { useChat } from "@/components/chat/context";
+import { caseStudySlugs } from "@/content/projects";
 import ImageSlot from "@/components/ui/ImageSlot";
 import Mermaid from "./Mermaid";
 import CodeBlock from "./CodeBlock";
@@ -357,6 +358,12 @@ function Followups({ block }: { block: Extract<Block, { type: "followups" }> }) 
       </span>
 
       {block.items.map((item, i) => {
+        // A followup may point at a case study that is hidden in production
+        // (NEXT_PUBLIC_LAUNCH_MODE). Rendering it would be a chip to a 404 —
+        // authored answers and LLM output both route through here.
+        const dead = item.href?.match(/^\/projects\/([^?#]+)$/);
+        if (dead && !caseStudySlugs.includes(dead[1])) return null;
+
         const chip = item.cta
           ? "bg-green text-surface px-[13px] py-[7px] hover:bg-green-dark"
           : item.primary

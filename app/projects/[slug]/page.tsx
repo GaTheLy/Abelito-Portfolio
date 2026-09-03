@@ -28,7 +28,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   const next = nextCaseStudy(slug);
 
   return (
-    <Page wide className="!pt-10">
+    <Page className="!pt-10">
       {/* Everything on the page shares the contents-plus-body column, so the
           headline and the section list start on the same line however wide the
           measure is. */}

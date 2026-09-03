@@ -15,9 +15,9 @@ import { useChat } from "./context";
  *   /projects/<slug>    → rail mode, 340px, scoped to that project
  *
  * Everywhere else the column was a set of chips that navigated you away — the
- * page gets the width back instead, and the top bar keeps a way in.
+ * page gets the width back instead.
  *
- * Both the panel and its collapsed stand-in are always rendered; which one you
+ * Both the panel and its folded spine are always rendered; which one you
  * see is decided in CSS from `.shell-body[data-panel]` plus a media query. That
  * is what lets the default ("open above 1400px, out of the way below") cost
  * nothing at hydration — see the note in components/Shell.tsx.
@@ -89,19 +89,52 @@ export default function ChatPanel({
         <ChatInput scope={scope} />
       </aside>
 
-      {/* The collapsed state. Deliberately the same gesture as the mobile
-          sheet's bar rather than a second pattern — one "there is a chat here"
-          affordance, floated instead of pinned because desktop has the room. */}
+      {/* The collapsed state: the panel folded to a spine, still in the flex
+          row. Deliberately NOT a floating button — this design has no raised
+          layer, and a bubble in the opposite corner broke the drawer metaphor
+          the whole collapse is built on. The whole strip is the target.
+
+          The green dot is the same one the open panel's header carries, which
+          is what makes the spine read as that panel folded rather than as a
+          separate control that happens to live on the edge. */}
       <button
         type="button"
         onClick={() => onToggle(true)}
-        className="shell-pill fixed right-6 bottom-6 z-40 flex items-center gap-2.5 rounded-pill bg-green py-2.5 pr-[18px] pl-4 text-surface shadow-pill transition-colors hover:bg-green-dark max-lg:hidden"
+        aria-label={scope ? `Open the chat about ${scope.name}` : "Open the chat"}
+        className="shell-spine group relative flex flex-col items-center justify-center gap-[18px] overflow-hidden border-l border-divider bg-surface text-ink-label transition-colors hover:bg-green-tint hover:text-green max-lg:hidden"
       >
-        <span aria-hidden className="block size-[7px] rounded-full bg-surface/70" />
-        {/* A fixed label, not the project's name — "Traffic congestion
-            detection" would make the pill a different width on every case
-            study, and the header already says which project this is. */}
-        <span className="t-ui">{scope ? "Ask about this project" : "Ask me anything"}</span>
+        {/* The hover state has to be visible from the page side, not just under
+            the cursor — this is the edge the reader's eye is already near. */}
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[2px] bg-transparent transition-colors group-hover:bg-green"
+        />
+
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 15 15"
+          fill="none"
+          aria-hidden
+          className="flex-none transition-transform duration-200 group-hover:-translate-x-[2px]"
+        >
+          <path
+            d="M9.5 2.5L5 7.5L9.5 12.5"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+
+        <span aria-hidden className="block size-[7px] flex-none rounded-full bg-green" />
+
+        {/* Reads bottom-to-top, the convention for a right-hand edge. The
+            width is fixed now, so the label can name the scope without the
+            strip changing size between routes. */}
+        <span className="font-mono text-[9.5px] font-bold tracking-[0.2em] whitespace-nowrap uppercase [writing-mode:vertical-rl] rotate-180">
+          {scope ? "Ask about this project" : "Ask me anything"}
+        </span>
       </button>
     </>
   );

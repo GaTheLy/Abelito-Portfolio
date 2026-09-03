@@ -1,7 +1,7 @@
 // Projects that have a case study but aren't ready to publish yet.
 // Set NEXT_PUBLIC_LAUNCH_MODE=1 in the production environment to hide them;
 // leave it unset locally so dev sees everything.
-const LAUNCH_WIP = new Set(
+export const LAUNCH_WIP = new Set(
   process.env.NEXT_PUBLIC_LAUNCH_MODE === "1"
     ? ["manna", "talkative", "gerakin"]
     : [],

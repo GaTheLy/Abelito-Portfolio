@@ -1,15 +1,7 @@
 import { parseBlocks, type Block, type BlockInput } from "../lib/blocks.ts";
 import type { RailContext } from "../lib/rail.ts";
 import type { TopicId } from "./answers.ts";
-import { projectBySlug } from "./projects.ts";
-
-// Mirror of the WIP set in projects.ts — filters the case study array in
-// production so routes, the next-study cycle and hasChatPanel all stay in sync.
-const LAUNCH_WIP = new Set(
-  process.env.NEXT_PUBLIC_LAUNCH_MODE === "1"
-    ? ["manna", "talkative", "gerakin"]
-    : [],
-);
+import { projectBySlug, LAUNCH_WIP } from "./projects.ts";
 
 // The four full case studies. One template, fixed section order:
 //

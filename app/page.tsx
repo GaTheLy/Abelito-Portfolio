@@ -37,7 +37,7 @@ export default function HomePage() {
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
   return (
-    <div className="animate-rise mx-auto max-w-[860px] pb-20">
+    <div className="animate-rise mx-auto max-w-[calc(var(--case-column)+5.5rem)] pb-20">
       {/* ── Band 1: byline, headline, actions, proof ─────────────────────── */}
       <div className={`${PAD} pt-8 lg:pt-11`}>
         <div className="mb-5 flex items-center gap-3">
@@ -85,7 +85,7 @@ export default function HomePage() {
 
       {/* ── Band 2: the route rail, with the figure standing in it ───────── */}
       <div
-        className={`mt-[26px] grid items-stretch gap-[30px] border-t border-divider bg-well ${PAD} pt-[26px] lg:grid-cols-[minmax(0,460px)_1fr]`}
+        className={`mt-[26px] grid items-stretch gap-[30px] border-t border-divider bg-well ${PAD} pt-[26px] lg:grid-cols-[minmax(0,1fr)_300px] min-[1560px]:grid-cols-[minmax(0,1fr)_400px]`}
       >
         <div className="relative z-[2] flex flex-col gap-[22px] pb-[30px]">
           <div>
@@ -110,7 +110,7 @@ export default function HomePage() {
                 {routeRows.map((row) => (
                   <li
                     key={row.org}
-                    className="grid grid-cols-[8px_92px_1fr] items-baseline gap-x-4 border-b border-divider py-[17px] last:border-b-0"
+                    className="grid grid-cols-[8px_minmax(80px,18%)_1fr] items-baseline gap-x-3 border-b border-divider py-[17px] last:border-b-0"
                   >
                     <span
                       aria-hidden
