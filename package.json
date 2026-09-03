@@ -1,20 +1,25 @@
 {
   "name": "abelito-portfolio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "velite": "velite",
-    "dev": "velite && next dev",
-    "build": "velite && next build",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "content:watch": "velite --watch"
+    "test": "node --experimental-strip-types --test lib/*.test.ts",
+    "models": "node --env-file-if-exists=.env.local scripts/models.mjs"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.62",
+    "ai": "^7.0.79",
     "framer-motion": "^12.42.2",
-    "next": "16.2.10",
+    "mermaid": "^11.17.2",
+    "next": "^16.3.3",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -22,9 +27,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "^16.3.3",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "velite": "^0.4.0"
+    "typescript": "^5"
   }
 }

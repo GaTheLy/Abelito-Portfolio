@@ -1,86 +1,485 @@
 @import "tailwindcss";
 
-/* ── Design tokens (M0) ─────────────────────────────────────────────────────
-   Single source of truth. No component may use a raw hex or one-off px value;
-   everything draws from the tokens below via Tailwind utilities
-   (bg-builder, text-foreground, rounded-md, font-voice, …).
-   ──────────────────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens — the single source of truth.
+
+   Values come from README.md §Design tokens (measured off the Claude Design
+   prototypes). No component may use a raw hex — go through these utilities
+   (bg-canvas, text-ink-faint, …).
+
+   FIVE deliberately deviate from the spec: ink-faint, ink-faintest, ink-label,
+   vermilion and amber-ink are darkened. The spec's values put 9–10.5px mono
+   labels between 1.86:1 and 4.47:1 against their surfaces, and WCAG AA needs
+   4.5:1 for text that small. Each is the minimum darkening that clears it —
+   see the note on each. axe reports zero WCAG 2.1 A/AA violations across all
+   eight routes; keep it that way.
+
+   This design commits to one warm light palette. There is deliberately no dark
+   variant — the whole thing reads as printed paper, and a dark inversion would
+   be a different design, not a theme of this one.
+   ──────────────────────────────────────────────────────────────────────────── */
 
 @theme {
-  /* Brand accents — LOCKED palette, exact order. Constant across themes.
-     Used as solid fills (with white/cream text) and thin rules, never as
-     low-contrast text directly on the page background. */
-  --color-builder: #5e0006; /* oxblood */
-  --color-creator: #9b0f06; /* red */
-  --color-hobbyist: #d53e0f; /* orange-red */
-  --color-cream: #eed9b9; /* warm neutral "paper" */
+  /* Surfaces */
+  --color-canvas: #f1eee6; /* app background, chat input bar */
+  --color-surface: #f7f5ef; /* chat panel background */
+  --color-raised: #fbfaf6; /* cards, top bar */
+  --color-raised-alt: #fffdf9; /* inputs, chips */
+  --color-raised-alt2: #fdfcf8; /* inner cards */
+  --color-well: #ede9df; /* home route band, image-slot wells, cards */
+  --color-bar: #f4f1e7; /* table headers, code caption bars */
 
-  /* Radius scale — flat, restrained. */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.875rem;
+  /* Lines */
+  --color-divider: #ddd8ca; /* all 1px borders */
+  --color-divider-soft: #ede9df; /* table row dividers */
+  --color-border-input: #cfc9b8; /* inputs, unselected chips */
+  --color-border-faint: #e6e1d4; /* inner chip borders */
 
-  /* Spacing intentionally left to Tailwind's default scale — it is already a
-     consistent, token-based scale; no parallel one is invented here. */
+  /* Ink */
+  --color-ink: #17160f; /* primary text, dark bubbles, code background */
+  --color-ink-body: #3d3a31; /* body copy */
+  --color-ink-muted: #514c42; /* secondary copy */
+  /* 4.47:1 on the tinted band — a hair under AA. One step darker clears it. */
+  --color-ink-label: #6d695c; /* section labels */
+  /* The spec's #8B8574 managed only 3.17:1 on canvas — WCAG AA wants 4.5:1 for
+     text this small, and this token carries the 9–10.5px mono eyebrows, meta
+     lines and captions. Darkened to clear 4.5:1 on all four surfaces it sits on
+     (canvas 4.72, surface 5.02, well 4.51, raised 5.24).
+     Side effect worth knowing: at this cream's luminance there is no room to
+     pass AA and stay lighter than --color-ink-label, so those two are now
+     effectively one step rather than two. */
+  --color-ink-faint: #6f6958; /* meta, captions */
+  /* The spec's #B3AC9A was 1.86:1 on the tinted band — the worst failure in the
+     palette, on 9px labels that carry real information ("TikTok embed",
+     "Rendered"). Visible cost of the fix: in the mermaid caption bar the right
+     status label no longer sits a step lighter than the left one. */
+  --color-ink-faintest: #6d695e; /* placeholder labels, arrows */
+
+  /* Accents */
+  --color-green: #1e4d3b; /* primary action, metrics, active nav, rules */
+  --color-green-dark: #163a2c; /* button hover */
+  --color-green-tint: #eaf0ec; /* highlighted table rows, emphasis nodes */
+  --color-green-ink: #20301f; /* text on green tint */
+  /* Deepened from the spec's #D64A2B (3.55:1) so the 9px "NOW" labels clear
+     AA. Still the same rust accent; the shift is ~13% and reads identically. */
+  --color-vermilion: #ba4025; /* "now" markers, current-phase dots */
+
+  /* Amber — draft / needs-input callouts */
+  --color-amber-border: #c9b96b;
+  --color-amber-fill: #fff6d8;
+  --color-amber-ink: #7f702e; /* darkened from #8A7A32 — 3.96:1 on amber fill */
+  --color-amber-ink-deep: #5c5220;
+
+  /* Code block syntax */
+  --color-code-fg: #c9cfc6;
+  --color-code-comment: #8b9a86;
+  --color-code-keyword: #c9b96b;
+  --color-code-string: #a3c48e;
+
+  /* Type families — wired to next/font in app/layout.tsx */
+  --font-editorial: var(--font-newsreader), Georgia, serif;
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Radii — README §Spacing / shape */
+  --radius-xs: 3px; /* inline code, logo, small chips */
+  --radius-sm: 4px; /* diagram nodes, stack chips */
+  --radius-nav: 5px; /* nav items */
+  --radius-md: 7px;
+  --radius-lg: 8px; /* cards, panels */
+  --radius-xl: 10px; /* input bars, controls panel */
+  --radius-pill: 100px;
+
+  /* The one raised surface in the design. Everything else sits flat on the
+     paper; the collapsed-chat pill floats over the page, so it needs to read as
+     above it rather than printed on it. */
+  --shadow-pill: 0 2px 6px rgb(23 22 15 / 0.09), 0 8px 24px rgb(23 22 15 / 0.11);
+
+  /* README §Motion's curve, as a token — the shell, the drawer and the page
+     reflow all have to move on the same one or the collapse reads as two
+     animations that happen to overlap. */
+  --ease-shell: cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
-/* Semantic neutrals as runtime variables so they can flip per theme.
-   Light (warm) is the primary theme. */
-:root {
-  --background: #fbf8f3;
-  --foreground: #1a1310;
-  --muted: #756a5e;
-  --border: #e6dbcb;
-  --card: #ffffff;
-}
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #17120e;
-    --foreground: #f1e9dc;
-    --muted: #a99c8c;
-    --border: #322a21;
-    --card: #201914;
-  }
-}
-
-/* Expose the runtime neutrals + font variables to Tailwind so utilities like
-   bg-background / text-muted / border-border / font-voice exist. */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-card: var(--card);
-
-  --font-sans: var(--font-sans-var);
-  --font-voice: var(--font-voice-var);
-  --font-mono: var(--font-mono-var);
+html {
+  background: var(--color-canvas);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans-var), ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Accessible keyboard focus for every interactive element. Inputs opt out of
-   the browser default (outline-none) for styling, so this restores a visible,
-   theme-aware indicator — shown only for keyboard/programmatic focus. Unlayered
-   so it wins over the outline-none utility. */
+/* README: "Always text-wrap: pretty on prose." */
+p,
+li,
+blockquote,
+h1,
+h2,
+h3 {
+  text-wrap: pretty;
+}
+
+/* Accessibility — README open item 7. A visible, high-contrast focus ring on
+   every interactive element. Never remove this without a replacement. */
 :focus-visible {
-  outline: 2px solid var(--foreground);
+  outline: 2px solid var(--color-green);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
-/* Respect users who prefer reduced motion — neutralize animations/transitions. */
+/* The ask bar is one control made of three elements, so focus belongs on the
+   wrapping <form>, not on the bare input inside it — a ring on both renders as
+   a box-in-a-box. The input's own ring is suppressed and the bar takes over;
+   this pairing must stay together or the field loses its focus indicator. */
+.ask-field:focus-visible {
+  outline: none;
+}
+
+.ask-bar {
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ask-bar:focus-within {
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green) 20%, transparent);
+}
+
+/* Custom scrollbars — 9px, thumb #D5CFBE, transparent track. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d5cfbe transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: #d5cfbe;
+  border-radius: 100px;
+}
+
+/* ── Shell layout ─────────────────────────────────────────────────────────────
+   The chat panel is 704px on Home (full mode, with a transcript) and 340px
+   beside a case study (rail mode). Those are the only two routes it renders on.
+
+     ≥1652px   exactly as designed — 704px chat, Home's 860px column intact
+     1024–1651 the PANEL yields, never the content: it shrinks to whatever is
+               left once Home's 860px column and its 44px gutters are paid for,
+               down to a 360px floor
+     <1024     single column; the panel becomes a bottom sheet
+
+   The old rule clamped the panel at 42vw instead, which on a 1512px laptop left
+   the content column 877px for a band that needs 948 — so the thing the design
+   is actually about got squeezed while the chat kept its width. Backwards.
+
+   The width change is a plain CSS transition on flex-basis. Framer Motion is
+   reserved for the interactions CSS genuinely can't do well (drag-to-dismiss,
+   streamed block entrance) — paying a library for a width tween would be silly.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.shell-panel {
+  --panel-w: 340px;
+  flex: 0 0 var(--panel-w);
+  transition:
+    flex-basis 0.38s var(--ease-shell),
+    margin-inline-end 0.42s var(--ease-shell),
+    translate 0.42s var(--ease-shell),
+    opacity 0.26s ease-out 0.08s,
+    visibility 0.42s;
+}
+
+.shell-body[data-mode="full"] .shell-panel {
+  /* 948px = Home's 860px band + its two 44px gutters. */
+  --panel-w: clamp(360px, 100vw - 948px, 704px);
+}
+
+/* ── Collapsing ───────────────────────────────────────────────────────────────
+   Three states on .shell-body, set in components/Shell.tsx:
+
+     open     the visitor opened it
+     closed   the visitor closed it — the pill is the way back in
+     none     this route has no chat at all; no panel, and no pill either
+     auto     nobody has said — the media query below decides
+
+   `auto` is why the default costs nothing at hydration: no effect measures the
+   viewport, so nothing flashes on the narrow screens the default exists for.
+   1400px is the width below which the panel starts taking room the page wants.
+
+   The panel and the pill are both in the DOM; exactly one is ever visible.
+
+   It closes as a drawer rather than by `display: none`, which cannot animate:
+   the panel keeps its full width and slides out by exactly that width, while a
+   negative margin of the same size pulls the page across behind it. Animating
+   `flex-basis` to 0 instead would squeeze the panel's own contents to nothing
+   on the way out — every line inside it re-wrapping, 40 times, for no reason.
+
+   `visibility` rather than `display` for the endpoint: it is animatable (it
+   holds until the transition ends, then hides), so the panel stops being
+   focusable without costing the animation. */
+
+.shell-body[data-panel="closed"] .shell-panel,
+.shell-body[data-panel="none"] .shell-panel {
+  margin-inline-end: calc(var(--panel-w) * -1);
+  translate: 100% 0;
+  opacity: 0;
+  visibility: hidden;
+  /* Delays belong to the state being entered — leaving is immediate, arriving
+     waits for the other affordance to clear. */
+  transition-delay: 0s;
+}
+
+.shell-body[data-panel="open"] .shell-pill,
+.shell-body[data-panel="none"] .shell-pill {
+  opacity: 0;
+  translate: 0 14px;
+  visibility: hidden;
+  transition-delay: 0s;
+  transition-duration: 0.18s;
+}
+
+@media (max-width: 1399px) {
+  .shell-body[data-panel="auto"] .shell-panel {
+    margin-inline-end: calc(var(--panel-w) * -1);
+    translate: 100% 0;
+    opacity: 0;
+    visibility: hidden;
+    transition-delay: 0s;
+  }
+}
+@media (min-width: 1400px) {
+  .shell-body[data-panel="auto"] .shell-pill {
+    opacity: 0;
+    translate: 0 14px;
+    visibility: hidden;
+    transition-delay: 0s;
+    transition-duration: 0.18s;
+  }
+}
+
+/* Arrives after the panel is out of the way, leaves at once. */
+.shell-pill {
+  transition:
+    opacity 0.24s ease-out 0.2s,
+    translate 0.34s var(--ease-shell) 0.2s,
+    visibility 0.54s;
+}
+
+/* ── What the page does with the width back ───────────────────────────────────
+   Content is centred at every width (see components/ui/Page.tsx) — pinning it
+   left is what turned a collapsed panel into 466px of dead margin on one side.
+
+   With no panel competing, a case study also gets a longer measure and a wider
+   gutter, so the extra width is spent on the reading rather than banked as more
+   margin. 72ch is still inside the comfortable 65–75ch range. */
+
+/* Registered so they can be transitioned. An unregistered custom property is a
+   string substitution and jumps between values — which would snap the page to
+   its new measure in one frame while the drawer was still sliding, the exact
+   seam this is meant to hide. `initial-value` must be font-independent, so it is
+   px here even though the declared value is `ch`. */
+@property --page-wide {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 1120px;
+}
+@property --case-measure {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 680px;
+}
+@property --case-gutter {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 148px;
+}
+
+.shell-body {
+  --page-wide: 1120px;
+  --case-measure: 72ch;
+  --case-gutter: 148px;
+
+  /* Same curve and duration as the drawer, so the column and the panel move as
+     one gesture instead of two. */
+  transition:
+    --page-wide 0.42s var(--ease-shell),
+    --case-measure 0.42s var(--ease-shell),
+    --case-gutter 0.42s var(--ease-shell);
+}
+
+.shell-body[data-panel="closed"],
+.shell-body[data-panel="none"] {
+  --page-wide: 1340px;
+  --case-measure: 84ch;
+  --case-gutter: 184px;
+}
+
+@media (max-width: 1399px) {
+  .shell-body[data-panel="auto"] {
+    --page-wide: 1340px;
+    --case-measure: 84ch;
+    --case-gutter: 184px;
+  }
+}
+
+/* Contents gutter + gap + measure. The case study's headline, meta strip and
+   footer are held to this too, so the whole page shares one left edge instead of
+   the body indenting away from the header when the measure changes. Keep the
+   3.5rem in step with the grid's `lg:gap-14`. */
+.shell-body {
+  --case-column: calc(var(--case-gutter) + 3.5rem + var(--case-measure));
+}
+
+/* Below Tailwind's `lg` the panel is replaced by the mobile sheet, and the pill
+   would be a second door to the same room. Keeping this in step with `lg:`
+   means components can use plain `lg:` prefixes. */
+@media (max-width: 1023px) {
+  .shell-panel,
+  .shell-pill {
+    display: none;
+  }
+}
+
+/* Skip link — visually hidden until focused. README open item 7. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 50;
+  border-radius: var(--radius-nav);
+  background: var(--color-green);
+  padding: 9px 14px;
+  font: 500 12.5px var(--font-sans);
+  color: var(--color-surface);
+  transition: top 0.18s ease;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ── Motion — README §Motion ──────────────────────────────────────────────── */
+
+@keyframes fu {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cr {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@utility animate-rise {
+  animation: fu 0.34s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@utility animate-caret {
+  animation: cr 1.1s steps(1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
-  ::before,
-  ::after {
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
+}
+
+/* ── Type roles — README §Type ────────────────────────────────────────────────
+   Named after the role, not the size, so a component reads as intent. The
+   fractional px values are deliberate; they came off the design files. */
+
+@utility t-h1-home {
+  /* 56px is the design size; clamp keeps it from swallowing a phone screen
+     without needing a breakpoint that has to stay in sync with the shell. */
+  font: 300 clamp(38px, 4.4vw, 56px) / 1.03 var(--font-editorial);
+  letter-spacing: -0.032em;
+}
+@utility t-h1-case {
+  font: 300 52px/1.04 var(--font-editorial);
+  letter-spacing: -0.03em;
+}
+@utility t-h1-page {
+  font: 300 46px/1.06 var(--font-editorial);
+  letter-spacing: -0.028em;
+}
+@utility t-h2 {
+  font: 300 34px/1.15 var(--font-editorial);
+  letter-spacing: -0.025em;
+}
+@utility t-essay {
+  font: 400 24px/1.25 var(--font-editorial);
+  letter-spacing: -0.02em;
+}
+@utility t-standfirst {
+  font: 400 17px/1.6 var(--font-editorial);
+}
+@utility t-quote {
+  font: 400 17px/1.65 var(--font-editorial);
+}
+@utility t-quote-sm {
+  font: 400 14.5px/1.6 var(--font-editorial);
+}
+@utility t-card-title {
+  font: 600 16px var(--font-sans);
+  letter-spacing: -0.015em;
+}
+@utility t-body {
+  font: 400 15px/1.68 var(--font-sans);
+}
+@utility t-body-sm {
+  font: 400 13.5px/1.6 var(--font-sans);
+}
+@utility t-ui {
+  font: 500 12.5px var(--font-sans);
+}
+@utility t-label {
+  font: 700 9.5px var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+@utility t-meta {
+  font: 400 10px var(--font-mono);
+  letter-spacing: 0.06em;
+}
+@utility t-meta-wide {
+  font: 400 10.5px var(--font-mono);
+  letter-spacing: 0.1em;
+}
+@utility t-metric {
+  font: 400 30px/1 var(--font-sans);
+  letter-spacing: -0.035em;
+}
+@utility t-metric-sm {
+  font: 400 26px/1 var(--font-sans);
+  letter-spacing: -0.035em;
+}
+@utility t-chip {
+  font: 500 11.5px var(--font-sans);
+}
+@utility t-code {
+  font: 400 11.5px/1.75 var(--font-mono);
 }

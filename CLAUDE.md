@@ -1,115 +1,171 @@
 # CLAUDE.md — abelitovisese.com
 
-Persistent project context for Claude Code. Read this in full before making changes. If anything in a prompt conflicts with this file, ask before proceeding.
+Persistent context for Claude Code. Read in full before changing anything. If a
+prompt conflicts with this file, ask before proceeding.
 
-## What this project is
+## What this is
 
-A storytelling-driven personal portfolio for Abelito Visese, an AI/ML engineer (LLM/NLP focus, Datasaur.ai). The site's core concept is **"the orchestrator"**: instead of a nav-first site, visitors either type a free-text prompt or tap a suggestion chip, a lightweight routing system classifies intent, shows a brief real routing readout (agent name + confidence score), then hands off to the matching section. It is a real, working small NLP system, not a themed animation — that authenticity is the entire point.
+A chat-native portfolio for Abelito Faleyrio Visese, AI Engineer at Datasaur.
+Multi-page site on the left, a **persistent chat** on the right that answers
+questions about his work. Audience: recruiters, hiring managers, founders
+looking to contract. Desktop-first, with a mobile bottom sheet.
 
-Visual language: flat, restrained, Apple-HIG-inspired minimalism. No gradients, no glow, no heavy shadows. One accent color per agent, everything else neutral.
+Built from the Claude Design handoff, kept verbatim in the `README.md`
+appendix — that spec is the authority on colour, type, spacing and copy.
 
-## Tech stack
+The original `.dc.html` prototypes are deliberately **not** in this repo (they
+live in `~/Downloads/design_handoff_chat_portfolio/`). They are design-tool
+output: if you ever consult them, read them for structure and values only —
+never port `support.js` or the `<sc-if>` / `{{ }}` template syntax.
 
-- **Framework:** Next.js 16 (App Router, TypeScript, strict mode)
-- **Styling:** Tailwind CSS
-- **Motion:** Framer Motion (routing reveal, agent handoff transitions only — don't animate everything)
-- **Content layer:** Velite (MDX + Zod schemas → typed data at build time). Do not use Contentlayer, it is unmaintained.
-- **Routing/orchestrator:** serverless route handler, embeddings-based classification (see below)
-- **Deploy target:** Vercel
+The v1 in git history (oxblood/cream, "orchestrator agents", Velite) is
+deliberately replaced. Don't reintroduce its patterns.
 
-## Site architecture
+## Rules that are load-bearing
 
-| Route | Agent | Purpose |
-|---|---|---|
-| `/` | — | Entry. Prompt bar + suggestion chips. |
-| `/builder` | Builder | AI/ML and engineering work. Project cards. |
-| `/builder/[slug]` | Builder | Full case study. See content model below. |
-| `/creator` | Creator | Content brand, @abelitovisese. |
-| `/hobbyist` | Hobbyist | Cars, investing, curiosity/edutainment. |
-| `/origin` | Origin | Personal narrative, own voice, editorial tone (`font-voice`, not agent-card style). |
-| `/connect` | — | Resume, email, LinkedIn, socials. Plainest page on the site — no cleverness here. |
-| fallback state | — | Low-confidence routing result. Shows confidence score honestly + suggestions. Not a 404 page — same system being honest about uncertainty. |
+**Never put a raw hex or one-off font shorthand in a component.** Every colour,
+type role and radius is a token in `app/globals.css`. Add a token rather than an
+inline value.
 
-Persistent minimal nav (small, text-only) plus a prompt bar available on every page, not just `/`, so users can re-route from anywhere.
+**Content lives in `content/`, never in JSX.** Pages import typed data. This
+isn't style — `content/corpus.ts` derives the chat's entire knowledge base from
+those modules, so copy written directly into a component is invisible to the
+chat and the site starts lying about itself.
 
-## Content model — the block system
+**One list, one source.** A case study's STACK renders `project.stack` from the
+record. Every count on `/projects` is derived. If you find yourself typing a
+number that exists elsewhere, derive it.
 
-Every case study is a sequence of reusable **blocks**, not a fixed template. A project picks which blocks it uses and in what order. The table of contents is generated from whichever blocks are present — never hand-maintained.
+**`content/` and `lib/` use relative imports with explicit `.ts` extensions.**
+That's what lets the pure data + logic layer run under bare `node --test` with
+no loader and no test framework. `app/` and `components/` use the `@/` alias
+normally. Don't "tidy" the extensions away.
 
-Block library (initial set — extend if needed, keep in a single source of truth):
+**The chat panel must stay in the root layout.** Moving it into a page would
+remount it on every navigation and destroy the premise of the design. It renders
+only on `/` and `/projects/<slug>` — `hasChatPanel()` in
+`content/case-studies.ts` is the one source for that, read by Shell, ChatPanel
+and TopBar. Don't inline a second copy of the check.
 
-- `overview`
-- `role`
-- `problem`
-- `approach`
-- `architecture` (holds a diagram/image)
-- `results` (holds metrics: label + value + optional delta)
-- `stack` (tag list)
-- `demo` (video/embed)
-- `timeline`
-- `retrospective` (pull-quote style)
+**The collapse default is a media query, not an effect.** Shell sets
+`data-panel="auto"` until the visitor toggles; `app/globals.css` decides from
+1400px which of the panel and the pill is visible. Both are always in the DOM,
+and so is ChatPanel — on a route with no chat the state is `none` (panel and pill
+both hidden), which is what lets it animate away instead of unmounting.
+Measuring the viewport on mount instead would flash the expanded panel on every
+narrow screen — the case the default exists for.
 
-Velite schema sketch (adjust field names as you implement, keep the shape):
+**The collapse is a drawer, and the page moves with it.** The panel slides out by
+`--panel-w` with a matching negative margin; `visibility`, not `display`, is the
+endpoint, because `display` cannot animate. The page's own widths
+(`--page-wide`, `--case-measure`, `--case-gutter`) are registered with
+`@property` purely so they can be transitioned on the same curve — drop the
+registration and the column snaps mid-slide. If you add another width that
+changes with the panel, register and transition it too.
 
-```ts
-const block = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('overview'), body: z.string() }),
-  z.object({ type: z.literal('role'), body: z.string() }),
-  z.object({ type: z.literal('problem'), body: z.string() }),
-  z.object({ type: z.literal('approach'), body: z.string() }),
-  z.object({ type: z.literal('architecture'), image: z.string(), caption: z.string().optional() }),
-  z.object({ type: z.literal('results'), metrics: z.array(z.object({ label: z.string(), value: z.string(), delta: z.string().optional() })) }),
-  z.object({ type: z.literal('stack'), tags: z.array(z.string()) }),
-  z.object({ type: z.literal('demo'), embedUrl: z.string() }),
-  z.object({ type: z.literal('timeline'), entries: z.array(z.object({ date: z.string(), text: z.string() })) }),
-  z.object({ type: z.literal('retrospective'), quote: z.string() }),
-])
+**The transcript accumulates.** `components/chat/context.tsx` holds `turns`, and
+`components/chat/Transcript.tsx` renders them for all three surfaces (full, rail,
+sheet). Don't reintroduce a single-answer state or the old "EARLIER" ghost trail
+— a chat that replaces itself was the thing that read as broken. `reset()` is the
+"New chat" button; a change of `scope` starts a new session on its own.
 
-const project = s.object({
-  slug: s.slug('projects'),
-  title: s.string(),
-  tagline: s.string(),
-  agent: z.literal('builder'), // extend if other agents get case studies later
-  blocks: z.array(block),
-})
+## The block system
+
+`lib/blocks.ts` is a Zod discriminated union rendered by
+`components/blocks/BlockList.tsx`. One schema, three consumers:
+
+1. the nine authored chat answers (`content/answer-blocks.ts`)
+2. the LLM's structured output (`app/api/ask/route.ts`)
+3. the four case-study bodies (`content/case-studies.ts`)
+
+Adding a block type means: schema entry → `BlockList` case → `blockLabel` entry
+→ `blockToText` in `content/corpus.ts`. All four, or something silently breaks.
+
+Authored content is parsed through `parseBlocks` at module load, so a malformed
+block fails the build rather than the page.
+
+## The chat's guarantees — do not weaken these
+
+**`rate`, `good` and `datasaur` never reach the model.** They're hard-routed in
+`app/api/ask/route.ts` via `GUARDED`. Refusing to invent a rate, being straight
+about a two-month stint, and admitting what's still early are product decisions.
+They must not depend on a model complying. Do not "simplify" this into a prompt
+instruction.
+
+**The site works with no credential.** Every failure path — missing key, 402,
+429, 503, unparseable output, mid-stream cut — lands on the authored answer plus
+an honest note. Never add a path that shows an error instead of an answer.
+
+**The case-study rail is scoped, and that is enforced structurally.** Beside
+`/projects/<slug>` the chat sends `scope`, and `app/api/ask/route.ts` narrows the
+knowledge base to that project's docs and swaps `blockSchema` for `proseSchema`.
+Both halves matter: the narrow corpus is why an off-topic question has nothing to
+answer from, and the narrow schema is why a table can't land in a 340px column.
+Don't demote either to a prompt instruction. Chat history is keyed by scope for
+the same reason. This deliberately diverges from the handoff — README §How the
+chat answers records why.
+
+**Blocks stream complete, one per NDJSON line** (`output: "array"` +
+`elementStream`). This is why the client never parses partial JSON and why
+mermaid always gets finished source. Don't switch to object streaming.
+
+## Honesty conventions
+
+The design is deliberately conspicuous about what isn't real yet: dashed amber
+callouts (`components/ui/Callout.tsx`, the `callout` block) and empty figure
+wells (`ImageSlot`, reached from content by an `image` block with no `src`). **Keep
+them until the content behind them is confirmed.** Removing a callout without
+supplying the material is the one change that makes this site dishonest.
+
+The About prose and the "where I'm going" aspirations are a *reconstruction of
+Abelito's voice*, not his words. Their banners stay until he rewrites them.
+
+Never invent a metric, a date, an employer or a claim. If content is missing,
+add a callout.
+
+## Commands
+
+```bash
+npm run dev      # localhost:3000
+npm run lint
+npm test         # node --test, no framework, no network
+npm run build
+npm run models   # list AI Gateway slugs (needs a credential)
 ```
 
-The contents rail renders one entry per block in `blocks`, in order, with a human label per block `type`. Do not hardcode section order or section presence anywhere in the page template.
-
-## Orchestrator implementation
-
-1. At build time, write a short natural-language description for each agent (`builder`, `creator`, `hobbyist`, `origin`) and precompute an embedding for each. Store as static JSON.
-2. On prompt submit, a route handler embeds the user's text (Voyage AI is a reasonable default for embeddings; swap freely) and computes cosine similarity against the four agent vectors.
-3. Return `{ route, confidence }`. Confidence is the actual top similarity score, not a fabricated number.
-4. If the request fails (network, rate limit) or confidence is very low, fall back to a static keyword map — the site must never hard-fail on this.
-5. Below a confidence threshold (pick something reasonable, e.g. 0.4), route to the fallback state instead of guessing.
-6. The UI shows the routing readout briefly (agent name + confidence, monospace, small) before revealing the section — this is a real value, don't fake the delay or the number.
-
-## Design tokens
-
-Define these in the Tailwind config, don't scatter magic values:
-
-- One accent color per agent (builder, creator, hobbyist share a family; origin and the orchestrator itself use a neutral/primary tone)
-- Two font families: a sans for UI chrome and agent pages, a serif/voice font reserved for `/origin` only, to signal "this is personal, not a system talking"
-- Spacing scale and radius scale, used consistently — no one-off pixel values in components
-
-## Placeholder content policy — read this carefully
-
-This build should be fully browsable end to end with placeholder content before any real writing happens. Follow these rules exactly:
-
-- **Structural content is real, not placeholder.** Route names, nav labels, agent names, section/block type labels, and project slugs (`datasaur`, `riset`, `manna`, `kinetixpro`, `katrol`) are already decided — use them as-is.
-- **Prose and data content is dummy.** Paragraph bodies, metrics values, tech stack tags, quotes, timeline entries — use realistic-length Lorem Ipsum or clearly fake placeholder data (e.g. metric value `92%` is fine as a placeholder, don't invent a specific real-sounding claim).
-- **Every dummy value must be traceable.** Wrap or prefix every piece of placeholder content with the marker `TODO_ABELITO:` — in MDX body text as an inline HTML comment `<!-- TODO_ABELITO: replace with real project summary -->` directly above the placeholder paragraph, and in code/data as a `// TODO_ABELITO:` comment.
-- **Maintain `PLACEHOLDERS.md` at the project root.** After scaffolding, generate this file as a table: file path, what's placeholder, what real content is needed. Update it whenever new placeholder content is added. This is the single checklist Abelito will work through before launch.
-- Do not invent specific fake achievements, numbers, or claims that could be mistaken for real ones if `PLACEHOLDERS.md` is skipped — keep placeholder data obviously generic (round numbers, "Lorem ipsum" prose) rather than plausible-sounding fabrications.
-
-## Build milestones
-
-M0 design system → M1 static shell (all routes, placeholder content) → M2 content layer (Velite + block schema, Datasaur as reference case study) → M3 orchestrator (real embeddings routing live) → M4 remaining pages + second flagship case study → M5 motion/responsive/accessibility polish → M6 deploy to Vercel with domain.
+Run `npm test` after touching `content/answers.ts` (the MATCH order is
+load-bearing and easy to break), `content/projects.ts`, or `lib/blocks.ts`.
 
 ## Conventions
 
-- TypeScript strict mode, no `any` without a comment explaining why
-- Components: one component per file, colocate small subcomponents only if truly single-use
-- No inline magic colors/spacing — always go through Tailwind config tokens
-- Keep the routing/orchestrator logic isolated in its own module (`lib/orchestrator/`) so the embedding provider can be swapped without touching UI code
+- TypeScript strict; no `any` without a comment explaining why.
+- Real `<Link>`/`<a>` for navigation; `<button>` only for actions.
+- Accessibility is not optional here: skip link, `:focus-visible` rings,
+  `aria-live` on the streaming answer, `alt` on every diagram.
+- Comments explain *why*, not what. The codebase leans terse; match it.
+
+## Regenerating the hero cut-out
+
+`public/assets/abel-2-cutout.webp` is derived from `abel-2.jpeg`. If the photo
+changes, regenerate rather than hand-editing — the important parts are *seeding
+the flood fill from the frame edges* (so white motifs inside the batik survive,
+being enclosed by dark pattern) and *trimming to the bounding box* (so a width
+class sizes the figure, not a box with dead margin):
+
+```python
+from PIL import Image, ImageDraw, ImageFilter
+import numpy as np
+src = Image.open("public/assets/abel-2.jpeg").convert("RGB")
+w, h = src.size
+work = src.copy()
+for seed in [(0,0),(w-1,0),(0,h-1),(w-1,h-1),(w//2,0),(w//2,h-1),(0,h//2),(w-1,h//2)]:
+    ImageDraw.floodfill(work, seed, (255,0,255), thresh=28)
+arr = np.array(work)
+bg = (arr[:,:,0]==255) & (arr[:,:,1]==0) & (arr[:,:,2]==255)
+a = Image.fromarray(np.where(bg,0,255).astype("uint8")).filter(ImageFilter.GaussianBlur(0.8))
+out = src.copy(); out.putalpha(a); out = out.crop(out.getbbox())
+out.save("public/assets/abel-2-cutout.webp", quality=88, method=6)
+```
+
+Requires a photo on a plain, near-uniform background. If a future photo isn't,
+this won't work and the figure needs cutting out by hand.
