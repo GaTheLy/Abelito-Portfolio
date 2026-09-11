@@ -25,18 +25,36 @@ interface Props {
   /** False while the block is still streaming in. Mermaid source is invalid
    *  until complete — rendering a half-arrived graph throws. */
   complete?: boolean;
+  /** Floor on the fit-to-width scale; unset means always fit. */
+  minScale?: number;
 }
+
+/** How far a chat diagram may shrink to fit. Mermaid scales the SVG to 100%
+ *  width, so a long left-to-right chain in the 360–704px panel came out with
+ *  labels too small to read. 0.85 of the 11px theme is the site's smallest
+ *  text; past that the figure scrolls sideways in its own box instead.
+ *  Case-study columns don't pass it: there, seeing the whole diagram at once
+ *  beats a scrollbar. */
+export const CHAT_MIN_SCALE = 0.85;
 
 type State =
   | { status: "pending" }
   | { status: "ok"; svg: string }
   | { status: "failed" };
 
-export default function Mermaid({ kind, code, alt, complete = true }: Props) {
+export default function Mermaid({ kind, code, alt, complete = true, minScale }: Props) {
   const [state, setState] = useState<State>({ status: "pending" });
   const reactId = useId();
   // Mermaid needs a DOM-id-safe string; React's useId contains colons.
   const domId = useRef(`mmd-${reactId.replace(/[^a-zA-Z0-9]/g, "")}`);
+  const figureRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (state.status !== "ok" || !minScale) return;
+    const svg = figureRef.current?.querySelector("svg");
+    const natural = svg?.viewBox.baseVal?.width;
+    if (svg && natural) svg.style.minWidth = `${Math.round(natural * minScale)}px`;
+  }, [state, minScale]);
 
   useEffect(() => {
     if (!complete) return;
@@ -87,6 +105,7 @@ export default function Mermaid({ kind, code, alt, complete = true }: Props) {
 
       {state.status === "ok" ? (
         <div
+          ref={figureRef}
           role="img"
           aria-label={alt}
           className="mermaid-figure overflow-x-auto px-4 py-4"

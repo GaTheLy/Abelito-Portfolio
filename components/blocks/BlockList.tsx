@@ -8,7 +8,7 @@ import { useChat } from "@/components/chat/context";
 import { caseStudySlugs } from "@/content/projects";
 import { HIDDEN_ROUTES } from "@/lib/site";
 import ImageSlot from "@/components/ui/ImageSlot";
-import Mermaid from "./Mermaid";
+import Mermaid, { CHAT_MIN_SCALE } from "./Mermaid";
 import CodeBlock from "./CodeBlock";
 
 /** Chat answers run tighter than page bodies — 13.5px vs 15px, 21px metric
@@ -152,7 +152,13 @@ function BlockView({
 
     case "mermaid":
       return (
-        <Mermaid kind={block.kind} code={block.code} alt={block.alt} complete={complete} />
+        <Mermaid
+          kind={block.kind}
+          code={block.code}
+          alt={block.alt}
+          complete={complete}
+          minScale={variant === "chat" ? CHAT_MIN_SCALE : undefined}
+        />
       );
 
     case "image":

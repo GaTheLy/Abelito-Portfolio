@@ -185,6 +185,11 @@ h3 {
 .shell-panel {
   --panel-w: 340px;
   flex: 0 0 var(--panel-w);
+  /* A flex item's minimum defaults to its content's min-content width, so one
+     block that can't wrap (a long code line) stretched the panel past
+     --panel-w and crushed the page beside it, down to nothing on a laptop.
+     Wide blocks scroll inside their own box instead. */
+  min-width: 0;
   transition:
     flex-basis 0.38s var(--ease-shell),
     margin-inline-end 0.42s var(--ease-shell),
