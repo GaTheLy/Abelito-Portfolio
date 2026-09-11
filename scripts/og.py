@@ -1,4 +1,4 @@
-"""Generate app/opengraph-image.png — the card that shows when the site is
+"""Generate app/opengraph-image.jpg — the card that shows when the site is
 shared on LinkedIn, Slack, X or iMessage.
 
 Static PNG rather than Next's runtime ImageResponse: the card only changes when
@@ -102,8 +102,10 @@ def main() -> None:
         label_w = d.textlength(text, font=small) + TRACK * len(text)
         x += max(d.textlength(value, font=metric), label_w) + GUTTER
 
-    out = ROOT / "app/opengraph-image.png"
-    img.save(out, optimize=True)
+    # JPEG, not PNG: the batik in the photo made the PNG 330 KB, and WhatsApp
+    # drops link-preview images over ~300 KB without a word.
+    out = ROOT / "app/opengraph-image.jpg"
+    img.convert("RGB").save(out, quality=85, optimize=True, progressive=True)
     print(f"wrote {out.relative_to(ROOT)} ({out.stat().st_size // 1024} KB, {W}x{H})")
 
 

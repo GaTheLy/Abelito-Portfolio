@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     template: "%s — Abelito Visese",
   },
   description: DESCRIPTION,
-  // The og:image itself comes from app/opengraph-image.png by file convention.
+  // The og:image itself comes from app/opengraph-image.jpg by file convention.
   // X reads og:image when twitter:image is absent, so one card covers both.
   openGraph: {
     type: "website",
