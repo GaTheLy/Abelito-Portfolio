@@ -33,7 +33,7 @@ export const GUARDED: readonly TopicId[] = ["rate", "good", "datasaur"];
 /** The question text shown in the user bubble when a topic is opened by chip
  *  rather than typed. */
 export const QLABEL: Record<TopicId, string> = {
-  rag: "Show me your best RAG work",
+  rag: "Show me your RAG work",
   evals: "How do you know your retrieval is any good?",
   manna: "Show me the WhatsApp booking system you built",
   cv: "What's your computer vision background?",
@@ -178,5 +178,7 @@ export function routeQuestion(text: string): TopicId {
 export const WELCOME =
   "Ask me anything about the work on this site — how something was built, what the numbers mean, or the parts that didn't go to plan. I answer from a knowledge base of my own projects, and I'll say so when something is outside it.";
 
-/** The four most-asked, shown in rail mode on non-case-study routes. */
-export const MOST_ASKED: readonly TopicId[] = ["rag", "manna", "datasaur", "rate"];
+/** The four openers on the welcome screen. The work, not the defences:
+ *  `datasaur` and `rate` still answer when typed, but as a first suggestion
+ *  they read as questions the visitor was expected to worry about. */
+export const MOST_ASKED: readonly TopicId[] = ["rag", "manna", "cv", "evals"];

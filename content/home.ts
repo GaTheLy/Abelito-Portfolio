@@ -11,12 +11,15 @@ export const HEADLINE = "I build the system around the model.";
 export const STANDFIRST =
   "Retrieval that stays honest, agent loops that log what they cost, and the unglamorous state machines that make either one survive a real user. Nine shipped systems — ask the chat about any of them.";
 
-/** Two lines each, so the labels break where the design breaks them. */
+/** Two lines each, so the labels break where the design breaks them.
+ *  Credentials rather than metrics for now: a bare number on the hero reads as
+ *  a claim, while the case studies carry the same numbers with their caveats.
+ *  Mirrored from content/work.ts. */
 export const proof = [
-  { value: "97.5%", label: "congestion classifier,\n18–22 FPS end to end" },
-  { value: "<2s", label: "phoneme-level scoring,\non-device" },
-  { value: "8", label: "microservices in a CV\nactive-learning monorepo" },
-  { value: "0", label: "critical findings,\n3rd-party pen test" },
+  { value: "Datasaur", label: "AI Engineer,\nLLM & NLP systems" },
+  { value: "AWS", label: "Certified Developer\n— Associate" },
+  { value: "Cum laude", label: "Computer Science,\nPetra Christian University" },
+  { value: "1st place", label: "Hackfest 2025,\ncomputer vision" },
 ];
 
 export interface RouteRow {

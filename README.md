@@ -350,7 +350,7 @@ Placeholders needing real material are listed under **Open items**.
      **The user wants a playful 3D render of his face here.** In production: a transparent PNG/WebP of the 3D avatar, or a `<model-viewer>`/three.js element, masked to the circle. His flat photo is used only on `/connect`.
 
 2. **Proof strip** — 4-col grid, top border `#DDD8CA`, `padding-top:26px`. Numbers `400 30px/1 Space Grotesk`, `letter-spacing:-.035em`, `#1E4D3B`; labels `400 11px/1.4 JetBrains Mono`, `#6E6A5C`.
-   `97.5%` congestion classifier, 18–22 FPS · `<2s` phoneme-level scoring, on-device · `8` microservices in a CV active-learning monorepo · `0` critical findings, 3rd-party pen test.
+   **Currently credentials, not metrics** (`content/home.ts`): `Datasaur` AI Engineer · `AWS` Certified Developer — Associate · `Cum laude` Computer Science · `1st place` Hackfest 2025. The case-study numbers were moved off the hero on purpose; they live in the case studies with their caveats.
 
 3. **"THE ROUTE HERE"** — horizontal 5-column timeline. A 1px `#DDD8CA` line at `top:7px` spans the row; each column starts with a 9px dot (`#CFC9B8`, current node `#D64A2B`). Eyebrow labels `700 9.5px JetBrains Mono`, `.12em`. Nodes: Petra Christian University (2021–2025) · Apple Developer Academy (Feb–Dec 2025) · Axrail, AWS Partner (Jan–Mar 2026) · KinetixPro (Feb–Apr 2026) · **NOW** Datasaur.
 
