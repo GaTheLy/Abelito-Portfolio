@@ -219,8 +219,6 @@ That conspicuousness is deliberate — don't style it down, fill it in.
 | 5 About photos | `content/about.ts` |
 | **The About prose** | `content/about.ts` — chapters, the three turns, and "where I'm going" are a *draft of your voice*, reconstructed from your CV and one conversation. Dates, roles, metrics and awards are sourced; memories and motivations are not. |
 | **3 Manna screenshots** | `content/case-studies.ts` — website booking wizard, admin verification view, and the WhatsApp thread. Dashed slots with captions already written; drop the PNGs in `public/assets/manna/` and set `src`. |
-| Manna build order | the deck carries no dates — the TIMELINE phases are the order the project reads in |
-| Academy phase dates | the Talkative timeline |
 | **7 traffic-thesis figures** | `content/case-studies.ts` — every `image` block with no `src` is a dashed slot. Drop the PNG in `public/assets/traffic/` and set `src`; the caption is already written. |
 | Traffic phase dates | the slides carry none |
 | Traffic speed / sampling method | the slides don't name either, but the STACK still lists Lucas-Kanade and SSIM |
@@ -452,7 +450,7 @@ Cards: 2-col grid, `gap:16px`. Same card chrome as Home. Contents: name + badge 
    - **ARCHITECTURE** — a hand-built diagram: `1px solid #DDD8CA`, `border-radius:8px`, `background:#FBFAF6`, a caption bar, then boxed nodes (`500 11px JetBrains Mono`, `padding:9px 13px`, `1px solid #17160F`, `border-radius:4px`, `background:#F7F5EF`; emphasis nodes `#1E4D3B` on `#EAF0EC`; terminal node inverted `#1E4D3B`/`#F7F5EF`) joined by 1px `#B3AC9A` lines with CSS-triangle arrowheads. Talkative's is instead a dark `#17160F` ASCII `<pre>` block. **All four are placeholders** — replace with real exported diagrams (Mermaid is fine).
    - **RESULTS** — 4-cell metric grid, `1px solid #DDD8CA`, `border-radius:8px`, dividers between cells. Numbers `400 26px/1 Space Grotesk`, `-.035em`; the headline metric in `#1E4D3B`, the rest `#17160F`.
    - **STACK** — chip row, `400 10.5px JetBrains Mono`, `padding:6px 11px`, `1px solid #DDD8CA`, `border-radius:4px`, `background:#FBFAF6`. Must match the record's `stack` — do not maintain a second list.
-   - **TIMELINE** — horizontal 3–4 column phase timeline, same construction as Home's. Talkative's carries a note: "Confirm the real phase dates against your Academy cycles."
+   - **TIMELINE** — horizontal 3–4 column phase timeline, same construction as Home's.
    - **LESSON** — `400 17px/1.65 Newsreader`, `border-left:2px solid #1E4D3B`, `padding-left:18px`, `max-width:58ch`.
 6. **Footer** — "NEXT CASE STUDY" link (cycles through the four) + a chat CTA.
 
@@ -695,7 +693,7 @@ Page transitions and chat messages both use the same short rise-and-fade. Custom
 2. **Real LLM + knowledge base**, replacing the nine authored answers — with the guardrails above preserved.
 3. **Datasaur content.** Intentionally high-level; he said "high-level only, no metrics."
 4. **Writing URLs** — real Medium/Substack links (he confirmed writing lives externally).
-5. **Verify the inferred content.** Both Academy timelines and Manna's build order were written by inference and are flagged in-page; the About narrative and aspirations carry draft banners. All must be confirmed or rewritten before launch.
+5. **Verify the inferred content.** The About narrative and aspirations carry draft banners. All must be confirmed or rewritten before launch.
 6. **`/projects` deep-linking** — search/filter/sort state should live in the URL so a filtered view is shareable.
 7. **Accessibility** — the prototype uses `<button>` for navigation and semantic headings, but needs real focus-visible styles, an aria-live region for streaming answers, and a skip link.
 

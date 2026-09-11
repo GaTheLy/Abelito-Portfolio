@@ -3,7 +3,7 @@
 // leave it unset locally so dev sees everything.
 export const LAUNCH_WIP = new Set(
   process.env.NEXT_PUBLIC_LAUNCH_MODE === "1"
-    ? ["manna", "talkative"]
+    ? ["manna"]
     : [],
 );
 
