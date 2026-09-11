@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { HIDDEN_ROUTES } from "@/lib/site";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -12,13 +13,6 @@ const NAV = [
   { href: "/creator", label: "Creator" },
   { href: "/about", label: "About" },
 ] as const;
-
-// Routes that aren't live yet. Set NEXT_PUBLIC_LAUNCH_MODE=1 in the production
-// environment (Vercel) to disable them; leave it unset locally to keep them
-// fully navigable during development.
-const WIP_NAV = new Set(
-  process.env.NEXT_PUBLIC_LAUNCH_MODE === "1" ? ["/creator", "/about"] : [],
-);
 
 /** "Projects" stays lit for every case study, not just the index. */
 function isActive(href: string, pathname: string): boolean {
@@ -56,7 +50,7 @@ export default function TopBar() {
         className="flex min-w-0 flex-none items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {NAV.map(({ href, label }) => {
-          if (WIP_NAV.has(href)) {
+          if (HIDDEN_ROUTES.has(href)) {
             return (
               <span
                 key={href}

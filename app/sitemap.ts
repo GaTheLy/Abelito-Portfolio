@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, HIDDEN_ROUTES } from "@/lib/site";
 import { caseStudySlugs } from "@/content/projects";
 
-// Case-study URLs are derived, so adding a fifth one lists itself.
+// Case-study URLs are derived, so a new one lists itself.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = ["", "/work", "/projects", "/writing", "/creator", "/about", "/connect"];
+  const pages = ["", "/work", "/projects", "/writing", "/creator", "/about", "/connect"].filter(
+    (path) => !HIDDEN_ROUTES.has(path),
+  );
   const cases = caseStudySlugs.map((slug) => `/projects/${slug}`);
 
   return [...pages, ...cases].map((path) => ({

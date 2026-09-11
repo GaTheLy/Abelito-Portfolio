@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Page from "@/components/ui/Page";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHead from "@/components/ui/SectionHead";
@@ -6,6 +7,7 @@ import Callout from "@/components/ui/Callout";
 import ImageSlot from "@/components/ui/ImageSlot";
 import AskButton from "@/components/ui/AskButton";
 import { inline } from "@/lib/inline";
+import { HIDDEN_ROUTES } from "@/lib/site";
 import {
   DRAFT_NOTICE,
   photoSlots,
@@ -26,6 +28,8 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  // Not live yet — see HIDDEN_ROUTES in lib/site.ts.
+  if (HIDDEN_ROUTES.has("/about")) notFound();
   return (
     <Page>
       <PageHeader

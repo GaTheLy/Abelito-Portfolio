@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Page from "@/components/ui/Page";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHead from "@/components/ui/SectionHead";
 import AskButton from "@/components/ui/AskButton";
 import Callout from "@/components/ui/Callout";
 import { inline } from "@/lib/inline";
+import { HIDDEN_ROUTES } from "@/lib/site";
 import { formats, videos, needsEmbeds, HANDLE } from "@/content/creator";
 
 export const metadata: Metadata = {
@@ -13,6 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default function CreatorPage() {
+  // Not live yet — see HIDDEN_ROUTES in lib/site.ts.
+  if (HIDDEN_ROUTES.has("/creator")) notFound();
   return (
     <Page>
       <PageHeader
