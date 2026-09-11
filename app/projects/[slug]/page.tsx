@@ -86,7 +86,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 // top of the viewport without this.
                 className="scroll-mt-5"
               >
-                <h2 className="t-label mt-0 mb-3 text-ink-label">{section.label}</h2>
+                <h2 className="t-section mt-0 mb-3.5 text-ink">{section.label}</h2>
                 <BlockList blocks={section.blocks} variant="page" />
               </section>
             ))}

@@ -17,7 +17,7 @@ export default function ProjectsPage() {
       <PageHeader
         eyebrow="/ Projects"
         title="Everything, not just the flattering parts."
-        standfirst={`${projects.length} systems across retrieval, agents, computer vision and infrastructure. Four have full case studies; the rest the chat will explain on request. Search by a technology, a metric, or the problem you actually have.`}
+        standfirst={`${projects.length} systems across retrieval, agents, computer vision and infrastructure — ${projects.filter((p) => p.deep).length} with full case studies, and the chat will explain any of them on request. Search by a technology, a metric, or the problem you actually have.`}
       />
       <Suspense fallback={null}>
         <ProjectsBrowser />

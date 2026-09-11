@@ -155,25 +155,22 @@ function BlockView({
       );
 
     case "image":
-      // No src yet — the dashed well says what's missing instead of pretending.
-      if (!block.src) return <ImageSlot ratio={block.ratio} prompt={block.caption} />;
+      return <Figure {...block} sizes="(max-width: 900px) 100vw, 700px" />;
+
+    case "figures":
       return (
-        <figure className="m-0 overflow-hidden rounded-md border border-divider bg-raised-alt2">
-          <div className="relative w-full" style={{ aspectRatio: block.ratio }}>
-            <Image
-              src={block.src}
-              alt={block.alt ?? block.caption}
-              fill
-              // object-contain: a screenshot cropped to fit is a screenshot
-              // with the numbers cut off.
-              className="object-contain"
-              sizes="(max-width: 900px) 100vw, 700px"
-            />
-          </div>
-          <figcaption className="border-t border-border-faint bg-bar px-3 py-[7px] font-mono text-[9px] tracking-[0.1em] text-ink-label uppercase">
-            {block.caption}
-          </figcaption>
-        </figure>
+        // Same auto-fit as `metrics`: side by side while there's room, stacked
+        // on a phone, with no breakpoint tied to the item count. The cap is
+        // there because portrait phone screenshots stretch to absurd heights at
+        // full column width — 420px puts two of them at 204px each, which is
+        // native size for the smallest one on the site rather than an upscale.
+        // ponytail: one cap for every ratio. Split it per-orientation if a row
+        // of landscape figures ever needs the full measure.
+        <div className="grid max-w-[420px] gap-3 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
+          {block.items.map((item, i) => (
+            <Figure key={i} {...item} sizes="(max-width: 900px) 50vw, 210px" />
+          ))}
+        </div>
       );
 
     case "metrics":
@@ -393,5 +390,42 @@ function Followups({ block }: { block: Extract<Block, { type: "followups" }> }) 
         return null;
       })}
     </div>
+  );
+}
+
+/** One figure — the filled version and the dashed empty well are the same
+ *  block, so `image` and `figures` can't drift apart. */
+function Figure({
+  src,
+  caption,
+  alt,
+  ratio,
+  sizes,
+}: {
+  src?: string;
+  caption: string;
+  alt?: string;
+  ratio: string;
+  sizes: string;
+}) {
+  // No src yet — the dashed well says what's missing instead of pretending.
+  if (!src) return <ImageSlot ratio={ratio} prompt={caption} />;
+  return (
+    <figure className="m-0 overflow-hidden rounded-md border border-divider bg-raised-alt2">
+      <div className="relative w-full" style={{ aspectRatio: ratio }}>
+        <Image
+          src={src}
+          alt={alt ?? caption}
+          fill
+          // object-contain: a screenshot cropped to fit is a screenshot with the
+          // numbers cut off.
+          className="object-contain"
+          sizes={sizes}
+        />
+      </div>
+      <figcaption className="border-t border-border-faint bg-bar px-3 py-[7px] font-mono text-[9px] tracking-[0.1em] text-ink-label uppercase">
+        {caption}
+      </figcaption>
+    </figure>
   );
 }

@@ -3,13 +3,13 @@ import type { RailContext } from "../lib/rail.ts";
 import type { TopicId } from "./answers.ts";
 import { projectBySlug, LAUNCH_WIP } from "./projects.ts";
 
-// The four full case studies. One template, fixed section order:
+// The full case studies. One template, fixed section order:
 //
 //   OVERVIEW → MY ROLE → PROBLEM → APPROACH → ARCHITECTURE → RESULTS
 //   → STACK → TIMELINE → LESSON
 //
-// Two studies insert one honesty section before STACK: Manna's WHAT BROKE and
-// traffic's WHAT'S WEAK. The first six labels and the last are fixed — the
+// Two studies insert one honesty section before STACK: Manna's WHAT'S NOT
+// REAL and traffic's WHAT'S WEAK. The first six labels and the last are fixed — the
 // content-integrity test enforces exactly that much.
 //
 // The ARCHITECTURE diagrams are real mermaid, drafted from each project's own
@@ -42,12 +42,6 @@ function stackSection(slug: string): { label: string; blocks: BlockInput[] } {
   return { label: "STACK", blocks: [{ type: "stack", tags: project.stack }] };
 }
 
-const ACADEMY_DATES_NOTE: BlockInput = {
-  type: "callout",
-  label: "CONFIRM",
-  text: "Confirm the real phase dates against your Academy cycles.",
-};
-
 const raw: CaseInput[] = [
   {
     slug: "traffic",
@@ -72,9 +66,9 @@ const raw: CaseInput[] = [
         href: "/projects/talkative",
       },
       {
-        label: "GerakinAja",
-        note: "Also chose a state machine over a bigger model.",
-        href: "/projects/gerakin",
+        label: "Manna Cooking Studio",
+        note: "Also won by structure rather than a bigger model — there, a database row the agent reads instead of a price it guesses.",
+        href: "/projects/manna",
       },
     ],
     sections: [
@@ -483,30 +477,30 @@ const raw: CaseInput[] = [
 
   {
     slug: "manna",
-    h1: "A whole business was running out of one WhatsApp inbox.",
+    h1: "Three surfaces, one database, nobody typing replies.",
     standfirst:
-      "Manna Cooking Studio teaches classes in Surabaya. Every booking, price question and payment receipt arrived as a message to one person's phone. I replaced the phone.",
+      "A cooking studio's entire booking journey — browse, reserve, pay, confirm — built end to end as a demo. A customer website, an admin dashboard and a WhatsApp agent, all reading and writing the same real-time database.",
     meta: [
-      { key: "CONTEXT", value: "Paid client project" },
-      { key: "CLIENT", value: "Manna Cooking Studio, Surabaya" },
-      { key: "SURFACE", value: "The studio's own WhatsApp number" },
-      { key: "OUTCOME", value: "24/7 coverage · ~80% less admin" },
+      { key: "CONTEXT", value: "Self-directed demo · never deployed" },
+      { key: "USE CASE", value: "Manna Cooking Studio, Malang" },
+      { key: "SURFACES", value: "Website · dashboard · WhatsApp" },
+      { key: "OUTCOME", value: "One journey, three surfaces, no inbox" },
     ],
     questions: [
-      { label: "How did you stop it hallucinating prices?", topic: "evals" },
-      { label: "What broke with real users?", topic: "manna" },
-      { label: "What did the client actually pay for?", topic: "rate" },
+      { label: "How is it grounded so it can't invent a price?", topic: "evals" },
+      { label: "Why three surfaces instead of just a bot?", topic: "manna" },
+      { label: "Would you build this for a real studio?", topic: "rate" },
     ],
     related: [
       {
         label: "Traffic congestion detection",
-        note: "The same discipline of reading a messy signal — congestion from CCTV, intent from WhatsApp — and giving it structure.",
+        note: "The other end of the same instinct — reading a messy real-world signal and giving it enough structure to act on.",
         href: "/projects/traffic",
       },
       {
-        label: "GerakinAja",
-        note: "Also shipped on a real platform; also about what 'done' means to the person using it.",
-        href: "/projects/gerakin",
+        label: "Talkative",
+        note: "Also checks the model against a known answer — a target phoneme string instead of a database row.",
+        href: "/projects/talkative",
       },
     ],
     sections: [
@@ -515,7 +509,16 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "A WhatsApp agent that runs a cooking school's booking desk. RAG-grounded answers drawn from the studio's own documents, a four-step stateful booking flow with human payment approval, and live sync to Google Sheets and Calendar. My first paying client, and the project that taught me most about conversations in the wild.",
+            md: "A full-stack booking platform for a cooking studio, built as my own demonstration of what an end-to-end AI-integrated system actually costs to assemble. Three surfaces — a customer-facing website, an admin dashboard, and a WhatsApp agent — sit on one Supabase database, so a slot booked on the web disappears from the bot's availability in the same breath.",
+          },
+          {
+            type: "text",
+            md: "The interesting half is the agent. Every factual answer it gives — price, duration, difficulty, how many seats are left — is retrieved from the live database rather than generated, and no booking is confirmed until a human has looked at the payment proof.",
+          },
+          {
+            type: "callout",
+            label: "DEMO · NOT DEPLOYED",
+            text: "This is an independent personal project. Manna Cooking Studio is used strictly as an example use case — the system has never run in their operations, and nothing on this page is a business outcome.",
           },
         ],
       },
@@ -524,7 +527,7 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "Sole engineer, and the person on the phone with the client. Scoping, curating the grounding documents with the owner, the RAG layer, the booking state machine, deployment onto their existing number — and the support conversations after launch, which is where the real requirements showed up.",
+            md: "Sole engineer, and the person who decided what it should be. The schema, the customer site, the admin dashboard, the WhatsApp agent, the retrieval layer and the booking flow that runs across all three. There was no client to hand me requirements, which meant scoping was the first piece of work rather than the free one.",
           },
         ],
       },
@@ -533,7 +536,19 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "Availability, pricing, payment proof, calendar — all of it went through one person typing replies, during office hours only. Enquiries that arrived at 10pm were answered at 9am, by which point some of them had booked elsewhere. The studio didn't need a smarter chatbot; it needed the inbox to stop being a single point of failure.",
+            md: "Small studios run on messaging apps and spreadsheets, and the seams between them are where bookings get lost. I picked the three failures that show up first:",
+          },
+          {
+            type: "list",
+            items: [
+              "**Scattered enquiries.** Class questions arrive across separate WhatsApp threads, so availability lives in whoever answered last.",
+              "**Spreadsheet tracking.** Bookings kept by hand have no real-time state — double-bookings and missed reservations are a matter of timing, not carelessness.",
+              "**Manual payment confirmation.** A customer sends a screenshot and waits. The gap between proof and confirmation is where the reservation feels unreal to both sides.",
+            ],
+          },
+          {
+            type: "text",
+            md: "None of that is an AI problem. It's a *shared state* problem — which is exactly why the model is the smallest part of what follows.",
           },
         ],
       },
@@ -542,11 +557,66 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "An agent that lives on the studio's existing WhatsApp number — TypeScript with Baileys for the transport, Gemini for generation. Every factual answer is grounded: a RAG layer over ChromaDB with Gemini embeddings, indexed across 10+ curated documents the studio wrote themselves, so pricing and policy come from *their* words rather than the model's.",
+            md: "One database, three ways in. Supabase holds classes, sessions, bookings and assets; React and TypeScript on the front, Node and Express behind, Google Gemini for the conversational layer. Each surface owns a different job and none of them owns a copy of the truth.",
+          },
+          {
+            type: "table",
+            columns: [
+              { label: "SURFACE" },
+              { label: "WHAT IT OWNS" },
+              { label: "WHY IT EXISTS" },
+            ],
+            rows: [
+              {
+                cells: [
+                  "Customer website",
+                  "Browsing, live search by category and difficulty, a three-step booking wizard showing remaining capacity",
+                  "The funnel. It ends by handing the customer to WhatsApp, where they already are",
+                ],
+              },
+              {
+                cells: [
+                  "WhatsApp agent",
+                  "Onboarding, class recommendations, grounded Q&A, order capture, payment proof, the final receipt",
+                  "The surface people actually use. No app to install, no account to make",
+                ],
+                highlight: true,
+              },
+              {
+                cells: [
+                  "Admin dashboard",
+                  "Class CRUD, session scheduling, booking and payment verification, gallery assets, occupancy and revenue view",
+                  "Replaces the spreadsheet, and is the only place a payment gets approved",
+                ],
+              },
+            ],
           },
           {
             type: "text",
-            md: "The harder half was the booking. A stateful conversation engine does intent extraction, then walks a multi-step flow — class selection → scheduling → payment proof → admin verification — writing through to Google Sheets and Calendar so inventory and appointments stay real-time.",
+            md: "The agent's grounding is the part I'd defend hardest. Rather than answering from the model's own sense of what a cooking class costs, it retrieves pricing, duration and **live slot counts straight from the database** and answers from that — retrieval-augmented generation where the corpus is the operational data itself, not a folder of documents that goes stale the moment a schedule changes.",
+          },
+          {
+            type: "text",
+            md: "It also reads the *user* rather than just the query: someone who says they've never cooked before gets steered to a beginner class, and a follow-up about curriculum or format resolves against the same retrieved record instead of restarting the conversation.",
+          },
+          {
+            type: "image",
+            caption: "Customer website — the three-step booking wizard, with remaining capacity shown per slot.",
+            ratio: "16 / 9",
+          },
+          {
+            type: "text",
+            md: "Money is where the automation deliberately stops. The agent extracts the booking parameters from natural conversation — name, participant count, class, slot — then pauses. An administrator opens the payment proof in the dashboard and approves, rejects or reschedules; only then does the confirmation and its generated PDF receipt go out. **Human-in-the-loop is not a limitation here, it's the feature.**",
+          },
+          {
+            type: "image",
+            caption: "Admin dashboard — booking and verification, with the uploaded payment proof and approve / reschedule / cancel actions.",
+            ratio: "16 / 9",
+          },
+          {
+            type: "image",
+            caption: "The WhatsApp conversation end to end — greeting, class recommendation, grounded answer, order capture, receipt.",
+            ratio: "9 / 16",
           },
         ],
       },
@@ -556,22 +626,41 @@ const raw: CaseInput[] = [
           {
             type: "mermaid",
             kind: "flowchart LR",
-            alt: "Messages arrive over WhatsApp via Baileys and go through intent extraction, which routes either to a RAG layer over ChromaDB for factual questions, or to a booking state machine. The booking path requires human admin verification of payment before writing through to Google Sheets and Calendar.",
+            alt: "A customer website, an admin dashboard and a WhatsApp agent all read and write one Supabase database. The agent answers questions through a retrieval layer that queries live database records rather than the model's own knowledge. Bookings pause at a human admin verification step before a confirmation and PDF receipt are issued.",
             code: [
-              '  wa["WhatsApp · Baileys"] --> intent["intent extraction"]',
-              '  intent --> rag["RAG · ChromaDB"]',
-              '  intent --> booking["booking state machine"]',
-              '  booking --> admin["admin verification · human"]',
-              '  admin --> sync["Sheets + Calendar"]',
-              '  rag --> reply["grounded reply"]',
-              "  class rag,booking emphasis",
-              "  class admin draft",
-              "  class sync terminal",
+              '  web["customer website"] --> db[("Supabase · one real-time DB")]',
+              '  wa["WhatsApp agent · Gemini"] --> rag["retrieval over live records"]',
+              "  rag --> db",
+              '  dash["admin dashboard"] --> db',
+              '  db --> verify["payment verification · human"]',
+              '  verify --> out["confirmation + PDF receipt"]',
+              "  class rag emphasis",
+              "  class verify draft",
+              "  class out terminal",
             ].join("\n"),
           },
           {
             type: "text",
-            md: "Admin verification sits between payment proof and the calendar write — a human still approves money.",
+            md: "There is no second store and no sync job. The dashboard's schedule blocks *are* the availability the agent quotes — which is the whole reason the three surfaces can't contradict each other.",
+          },
+          {
+            type: "mermaid",
+            kind: "sequenceDiagram",
+            alt: "A customer browses classes on the website, which hands them to WhatsApp. The agent answers questions from retrieved data and captures the order, then sends the payment proof to an admin. Once the admin approves, the agent returns a confirmation and a generated PDF receipt.",
+            code: [
+              "  participant C as Customer",
+              "  participant W as Website",
+              "  participant B as WhatsApp agent",
+              "  participant A as Admin",
+              "  C->>W: browse classes, check a slot",
+              "  W->>C: hand off to WhatsApp",
+              "  C->>B: ask about price, level, availability",
+              "  B->>C: answer from retrieved live records",
+              "  C->>B: confirm details, send payment proof",
+              "  B->>A: pause for verification",
+              "  A-->>B: approve",
+              "  B-->>C: confirmation + PDF receipt",
+            ].join("\n"),
           },
         ],
       },
@@ -581,11 +670,33 @@ const raw: CaseInput[] = [
           {
             type: "metrics",
             items: [
-              { value: "100%", label: "OF INBOUND HANDLED, 24/7", lead: true },
-              { value: "~80%", label: "ADMIN WORKLOAD REMOVED (EST.)" },
-              { value: "10+", label: "GROUNDING DOCUMENTS" },
-              { value: "4", label: "STEPS IN THE BOOKING FLOW" },
+              { value: "3", label: "SURFACES ON ONE DATABASE", lead: true },
+              { value: "3", label: "STEPS IN THE BOOKING WIZARD" },
+              { value: "<2 min", label: "DESIGN TARGET, BROWSE TO BOOKED" },
+              { value: "0", label: "REAL DEPLOYMENTS" },
             ],
+          },
+          {
+            type: "text",
+            md: "What the build actually demonstrates is narrower than a case study usually claims, so here it is plainly: a booking can be started on the web and finished in WhatsApp; the agent's factual answers come from the same rows the dashboard edits; and no reservation reaches a customer without a person having approved the money.",
+          },
+          {
+            type: "callout",
+            label: "NOT MEASURED",
+            text: "These are properties of the build, not outcomes. There is no production traffic behind them — no adoption number, no admin hours saved, no error rate. If any figure here is ever restated as impact, it needs a real deployment first.",
+          },
+        ],
+      },
+      {
+        label: "WHAT'S NOT REAL",
+        blocks: [
+          {
+            type: "text",
+            md: "The studio never used this. Manna Cooking Studio is an example use case chosen to make the demo concrete, not a client — there was no engagement, no handover, and no one's actual bookings ever went through it.",
+          },
+          {
+            type: "text",
+            md: "Which means the hardest test never happened. Real conversations pause for days, arrive out of order and resume with a payment screenshot and no context; I've designed for that, but a demo can't tell me whether the design survives it. The parts I'd expect to break first are session re-entry and anything that assumes a customer answers the question you actually asked.",
           },
         ],
       },
@@ -598,40 +709,22 @@ const raw: CaseInput[] = [
             entries: [
               {
                 label: "PHASE 01",
-                text: "Sat with the owner and turned the inbox into 10+ written documents. Nothing technical yet.",
+                text: "Schema first. Classes, sessions, bookings and assets in Supabase — the shared truth all three surfaces would have to agree on.",
               },
               {
                 label: "PHASE 02",
-                text: "RAG over those docs, answering questions only. Shipped read-only first, deliberately.",
+                text: "The customer website. Browsing, live search and the three-step booking wizard, ending in a hand-off to WhatsApp.",
               },
               {
                 label: "PHASE 03",
-                text: "Booking flow, payment proof and admin verification. Sheets and Calendar writes go live.",
+                text: "The WhatsApp agent. Retrieval over live records, order capture from natural conversation, and the pause for payment verification.",
               },
               {
                 label: "PHASE 04",
-                text: "Real users broke the state machine. Persistent sessions and re-entry paths fixed it.",
+                text: "The admin dashboard. Class and session management, payment approval, and the occupancy view that closes the loop.",
                 current: true,
               },
             ],
-          },
-        ],
-      },
-      {
-        label: "WHAT BROKE",
-        blocks: [
-          {
-            type: "text",
-            md: "Real people don't finish flows. They ask about a class, disappear for two days, then send a payment screenshot with no context. The first version treated every message as a fresh turn and cheerfully asked which class they meant — the studio owner noticed before I did.",
-          },
-          {
-            type: "text",
-            md: "The fix was expiring state with a memory of its own: sessions that persist across days, and a re-entry path that reconstructs where someone was instead of restarting them.",
-          },
-          {
-            type: "callout",
-            label: "INFERRED — CONFIRM",
-            text: "This section was reconstructed from the shape of the project rather than from notes. Confirm the specifics before launch.",
           },
         ],
       },
@@ -640,7 +733,7 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "lesson",
-            text: "The model was the easy part. Nearly all the work was *state* — and the thing that made the client trust it wasn't fluency, it was that a human still approves every payment.",
+            text: "Building all three surfaces myself is what taught me the thing one of them alone never would: an agent is only as trustworthy as the schema underneath it. The model didn't stop inventing prices because I prompted it better — it stopped because there was a row to read.",
           },
         ],
       },
@@ -651,10 +744,10 @@ const raw: CaseInput[] = [
     slug: "talkative",
     h1: "“Close enough” is not feedback.",
     standfirst:
-      "Language apps tell you that you were wrong. Talkative tells you *which sound* you missed — phoneme by phoneme, on streaming audio, in under two seconds.",
+      "Language apps tell you that you were wrong. Talkative tells you *which sound* you missed — and which one you added that shouldn't be there. Phoneme by phoneme, on the device, in under two seconds.",
     meta: [
-      { key: "CONTEXT", value: "Team product · I owned the ML backend" },
-      { key: "WHERE", value: "Apple Developer Academy, 2025" },
+      { key: "CONTEXT", value: "Team product · Academy 2025" },
+      { key: "WHERE", value: "iOS · runs on the device" },
       { key: "DOMAIN", value: "Speech · phoneme-level scoring" },
       { key: "OUTCOME", value: "<2s per utterance, 44+ phonemes" },
     ],
@@ -665,9 +758,9 @@ const raw: CaseInput[] = [
     ],
     related: [
       {
-        label: "GerakinAja",
-        note: "The other Academy build — also latency-bound, also on-device.",
-        href: "/projects/gerakin",
+        label: "Manna Cooking Studio",
+        note: "Also checks the model against a known answer — a database row instead of a target phoneme string.",
+        href: "/projects/manna",
       },
       {
         label: "Traffic congestion detection",
@@ -681,7 +774,11 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "A pronunciation coach that scores speech phoneme by phoneme rather than word by word. Wav2Vec2 frame logits, Librosa DSP features and dynamic time warping give a learner a score for each of 44+ phonemes in under two seconds of streaming audio. Built with a team at the Apple Developer Academy in 2025.",
+            md: "A pronunciation coach that scores speech phoneme by phoneme rather than word by word. The sentence you're meant to say is turned into its phonetic spelling; the sentence you actually said is read back the same way; the two are lined up, and every symbol gets its own score. **44+ phoneme classes, under two seconds per utterance**, running on the phone. Built with a team at the Apple Developer Academy in 2025.",
+          },
+          {
+            type: "text",
+            md: "The part that separates it from a spelling checker for speech is what it catches. Most models are trained to *ignore* the sounds that don't belong, because they're looking for meaning. A pronunciation coach has to do the opposite — the sound you added is exactly the thing worth telling you about.",
           },
         ],
       },
@@ -690,7 +787,7 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "ML backend. The inference engine, the phoneme scoring and DTW alignment, the Django REST API around it, and the latency work that took it from unusable to under two seconds. Interaction design and the iOS client were my teammates'.",
+            md: "iOS developer and AI engineer — the app and the model under it. SwiftUI on the front, the phoneme recognition and the alignment that scores it, the latency work, and the conversion that moved the whole thing onto the device. Interaction design was my teammates'.",
           },
         ],
       },
@@ -699,7 +796,18 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "A learner says a word wrong and gets a red cross. That tells them nothing actionable — the useful information is *where* in the word their mouth did the wrong thing. Off-the-shelf speech-to-text won't give you that: it returns the word it thinks you meant, which is precisely the information that hides the mistake.",
+            md: "Learning a language is intimidating less because of grammar than because of the fear of sounding wrong — and most pronunciation apps answer that fear with a pass/fail. Two gaps in the existing tools do the damage:",
+          },
+          {
+            type: "list",
+            items: [
+              "**The black box.** Speech-to-text tells a learner *what* they said, never *how*. The engine flags the whole word wrong even when one sound was off, so a red line under “Think” doesn't say whether the mistake was the *Th* (tongue position) or the *ink* (vowel shape).",
+              "**Extra sounds are invisible.** Learners don't only substitute sounds, they insert them — “school-uh” for “school” — or swallow the ending consonant. Speech models are built to treat that as noise on the way to meaning. For a coach, that noise *is* the lesson.",
+            ],
+          },
+          {
+            type: "text",
+            md: "So the question the build had to answer: **how might we give precise, phoneme-level feedback so a learner can practise with confidence?**",
           },
         ],
       },
@@ -708,11 +816,51 @@ const raw: CaseInput[] = [
         blocks: [
           {
             type: "text",
-            md: "Work below the word. A Wav2Vec2 model in PyTorch produces frame-level phonetic logits; Librosa handles the DSP side — MFCC and energy features from the raw stream. Dynamic time warping then aligns the learner's audio against the reference so each of 44+ phoneme classes gets its own score, even when the learner speaks slower or faster than the model.",
+            md: "Work below the word, on both sides of the comparison. eSpeak-NG converts the target sentence into the phoneme string it *should* be — grapheme-to-phoneme, deterministic, no model involved. A Wav2Vec2Phoneme model reads the recording into the phoneme string it *actually* was. Aligning those two strings is where every kind of error becomes visible at once.",
           },
           {
             type: "text",
-            md: "Served from a Django REST backend so the phone stays thin, with byte-stream decoding optimised so scoring starts before the utterance is finished.",
+            md: "The two strings are scored against each other with **Levenshtein distance**, and picking an edit-distance metric is what makes the second problem from above disappear on its own. Its three operations *are* the three ways a learner goes wrong: a **substitution** is a swapped sound, a **deletion** is a swallowed one, and an **insertion** is the extra sound nobody else was looking for. The gaps in the table below are those deletions and insertions — no special case, just what the algorithm already returns.",
+          },
+          {
+            type: "table",
+            columns: [{ label: "TARGET" }, { label: "USER SAID" }, { label: "SCORE", align: "right" }],
+            rows: [
+              { cells: ["æ", "aɪ", "0%"] },
+              { cells: ["t", "—", "0%"] },
+              { cells: ["m", "m", "76%"], highlight: true },
+              { cells: ["ə", "ə", "82%"], highlight: true },
+              { cells: ["s", "z", "0%"] },
+              { cells: ["f", "p", "0%"] },
+              { cells: ["ɪɹ", "ɪɹ", "92%"], highlight: true },
+              { cells: ["—", "s", "—"] },
+            ],
+            footnote:
+              "One word — “atmosphere” — as the app scores it. A dash in TARGET is a sound the learner added; a dash in USER SAID is one they swallowed. Neither is a substitution, and a word-level checker sees both as the same single red cross.",
+          },
+          {
+            type: "text",
+            md: "The feedback lands on the text itself rather than in a report: a 0–100% phonetic match score for the utterance, correct phonemes in green and mispronunciations in red, and any error word tappable to see how the articulation differed from the target sound.",
+          },
+          {
+            type: "figures",
+            items: [
+              {
+                src: "/assets/talkative/practice.png",
+                caption: "Custom Mode — reading your own script aloud, current phrase highlighted, waveform live.",
+                // Both shots are ~1:2, not 9:16. Shared so the pair sits level.
+                ratio: "1 / 2",
+              },
+              {
+                src: "/assets/talkative/evaluation.png",
+                caption: "Evaluation detail — expected against heard, per sound, with the exact miss named.",
+                ratio: "1 / 2",
+              },
+            ],
+          },
+          {
+            type: "text",
+            md: "It didn't start on the phone. The first working version served a PyTorch model from a REST backend and the round trip dominated everything — the latency pass that got it under two seconds was byte-stream decoding, not a better model. Converting to CoreML afterwards took the network out of the loop entirely, which is also what made it usable offline.",
           },
         ],
       },
@@ -722,18 +870,20 @@ const raw: CaseInput[] = [
           {
             type: "mermaid",
             kind: "flowchart LR",
-            alt: "Microphone audio is decoded as a byte stream and follows two parallel paths: Wav2Vec2 producing frame logits, and Librosa DSP producing MFCC and energy features. Both converge on DTW alignment, which emits scores for 44-plus phoneme classes to the feedback UI, in under two seconds per utterance.",
+            alt: "Two inputs run in parallel. The target sentence, Hello World, is converted by eSpeak-NG into the target phoneme string h-schwa-l-o-u w-open-e-length-l-d. The user's sound input is converted by Wav2Vec2Phoneme into the phoneme string they actually produced, h-a-l-o w-open-e-r-l-d. Both strings meet at a pronunciation scorer running a Levenshtein distance algorithm, whose output drives the feedback UI.",
             code: [
-              '  mic["mic · streaming"] --> dec["byte-stream decode"]',
-              '  dec --> w2v["Wav2Vec2 · frame logits"]',
-              '  dec --> dsp["Librosa DSP · MFCC / energy"]',
-              '  w2v --> dtw["DTW alignment"]',
-              '  dsp --> dtw',
-              '  dtw --> scores["44+ phoneme scores"]',
-              '  scores --> ui["feedback UI · &lt;2s"]',
-              "  class w2v,dsp emphasis",
+              '  sent["target sentence: Hello World"] -->|eSpeak-NG| tgt["target phonemes: həloʊ wɜːld"]',
+              '  audio["user sound input"] -->|Wav2Vec2Phoneme| got["input phonemes: halo wɜrld"]',
+              '  tgt --> scorer["pronunciation scorer: Levenshtein distance"]',
+              "  got --> scorer",
+              '  scorer --> ui["feedback UI"]',
+              "  class scorer emphasis",
               "  class ui terminal",
             ].join("\n"),
+          },
+          {
+            type: "text",
+            md: "Both halves run on the phone, which is why the score arrives while the learner is still looking at the sentence they just read.",
           },
         ],
       },
@@ -743,11 +893,15 @@ const raw: CaseInput[] = [
           {
             type: "metrics",
             items: [
-              { value: "<2s", label: "LATENCY PER UTTERANCE", lead: true },
+              { value: "<2s", label: "PER UTTERANCE", lead: true },
               { value: "44+", label: "PHONEME CLASSES SCORED" },
-              { value: "DTW", label: "ALIGNMENT METHOD" },
-              { value: "1", label: "SHIPPED APP, ACADEMY 2025" },
+              { value: "0–100%", label: "PHONETIC MATCH SCORE" },
+              { value: "3", label: "ERROR TYPES CAUGHT" },
             ],
+          },
+          {
+            type: "text",
+            md: "The three error types are the whole argument, and they come free with the metric — substitution, deletion and insertion are exactly what Levenshtein distance counts. A word-level checker collapses all three into one red cross.",
           },
         ],
       },
@@ -764,16 +918,19 @@ const raw: CaseInput[] = [
               },
               {
                 label: "PHASE 02",
-                text: "Dropped below the word — Wav2Vec2 logits plus DTW alignment for per-phoneme scores.",
+                text: "Dropped below the word — eSpeak-NG for the target phonemes, Wav2Vec2Phoneme for the spoken ones, aligned so omissions and insertions show up too.",
               },
               {
                 label: "PHASE 03",
-                text: "Latency pass. Byte-stream decoding took it under two seconds and testers changed their minds.",
+                text: "Served from a REST backend. The latency pass on byte-stream decoding took it under two seconds and testers changed their minds.",
+              },
+              {
+                label: "PHASE 04",
+                text: "Converted to CoreML and moved on-device. The network left the loop, and so did the requirement to have one.",
                 current: true,
               },
             ],
           },
-          ACADEMY_DATES_NOTE,
         ],
       },
       {
@@ -782,150 +939,6 @@ const raw: CaseInput[] = [
           {
             type: "lesson",
             text: "Latency is a product decision. Nothing about the model changed when I got it under two seconds — I changed how the bytes arrived. Testers called the fast version “smart” and the slow one “broken.” Same scores, both times.",
-          },
-        ],
-      },
-    ],
-  },
-
-  {
-    slug: "gerakin",
-    h1: "A form coach that never leaves the phone.",
-    standfirst:
-      "Counting reps is easy. Knowing that a rep was *bad* — and saying so while the person is still moving — needs pose, physics and a state machine, all running on-device at 30 frames a second.",
-    meta: [
-      { key: "CONTEXT", value: "Team product · I owned the ML pipeline" },
-      { key: "WHERE", value: "Apple Developer Academy, 2025" },
-      { key: "DOMAIN", value: "Pose estimation · on-device" },
-      { key: "OUTCOME", value: "<200ms per frame, fully offline" },
-    ],
-    questions: [
-      { label: "Why a state machine and not a classifier?", topic: "cv" },
-      { label: "How do you validate 'good form'?", topic: "evals" },
-      { label: "What else have you shipped on-device?", topic: "cv" },
-    ],
-    related: [
-      {
-        label: "Talkative",
-        note: "The other Academy build — latency as a product decision.",
-        href: "/projects/talkative",
-      },
-      {
-        label: "Traffic congestion detection",
-        note: "Also on-device intelligence — same instinct to keep inference tight and avoid the network call.",
-        href: "/projects/traffic",
-      },
-    ],
-    sections: [
-      {
-        label: "OVERVIEW",
-        blocks: [
-          {
-            type: "text",
-            md: "An offline form coach. Apple Vision keypoints feed a CoreML action classifier, a five-state automaton counts only complete reps, and four biomechanical validators explain what went wrong — all on the phone, at 30 FPS, with no network calls. Apple Developer Academy, 2025.",
-          },
-        ],
-      },
-      {
-        label: "MY ROLE",
-        blocks: [
-          {
-            type: "text",
-            md: "ML pipeline. Pose feature extraction, training the action classifier on 60-frame sequences, the rep-counting automaton and the constraint validators. The app shell and interaction design were the team's.",
-          },
-        ],
-      },
-      {
-        label: "PROBLEM",
-        blocks: [
-          {
-            type: "text",
-            md: "Home workouts fail quietly: nobody tells you your back rounded on rep seven. A cloud model could judge it, but you can't stream a gym camera to a server and still be useful — the correction has to arrive while the movement is happening, and it has to work in a basement with no signal.",
-          },
-        ],
-      },
-      {
-        label: "APPROACH",
-        blocks: [
-          {
-            type: "text",
-            md: "Apple Vision extracts 18 skeletal keypoints per frame. A custom CoreML action classifier — trained on 60-frame pose sequences — reads the movement rather than the posture, so it can tell a controlled descent from a collapse.",
-          },
-          {
-            type: "text",
-            md: "Counting is a **5-state finite automaton**, not a threshold: a rep only counts if the movement passes through every phase in order. Four biomechanical constraint validators run alongside it to catch the specific ways form breaks, which is what turns “wrong” into “your knee is travelling inward”.",
-          },
-        ],
-      },
-      {
-        label: "ARCHITECTURE",
-        blocks: [
-          {
-            type: "mermaid",
-            kind: "flowchart TB",
-            alt: "A 30 FPS camera feed goes to Apple Vision, extracting 18 skeletal keypoints, then to a CoreML classifier over a 60-frame window. Its output drives both a five-state rep automaton and four biomechanical constraint validators in parallel, which together produce a rep count plus a specific correction. No step leaves the device.",
-            code: [
-              '  cam["camera · 30 FPS"] --> vision["Vision · 18 keypoints"]',
-              '  vision --> coreml["CoreML · 60-frame window"]',
-              '  coreml --> fsm["5-state automaton"]',
-              '  coreml --> validators["4 constraint validators"]',
-              '  fsm --> out["count + correction"]',
-              '  validators --> out',
-              "  class fsm,validators emphasis",
-              "  class out terminal",
-            ].join("\n"),
-          },
-          {
-            type: "text",
-            md: "There is no network hop anywhere in this diagram — that's the whole design constraint.",
-          },
-        ],
-      },
-      {
-        label: "RESULTS",
-        blocks: [
-          {
-            type: "metrics",
-            items: [
-              { value: "<200ms", label: "PER-FRAME LATENCY", lead: true },
-              { value: "18", label: "SKELETAL KEYPOINTS" },
-              { value: "60", label: "FRAME POSE SEQUENCE" },
-              { value: "0", label: "NETWORK CALLS PER SESSION" },
-            ],
-          },
-        ],
-      },
-      stackSection("gerakin"),
-      {
-        label: "TIMELINE",
-        blocks: [
-          {
-            type: "timeline",
-            entries: [
-              {
-                label: "PHASE 01",
-                text: "Per-frame pose classification. Counted phantom reps whenever someone shifted their weight.",
-              },
-              {
-                label: "PHASE 02",
-                text: "Moved to 60-frame sequences and a five-state automaton — a rep must pass every phase in order.",
-              },
-              {
-                label: "PHASE 03",
-                text: "Added four biomechanical validators, turning “wrong” into a specific, sayable correction.",
-                current: true,
-              },
-            ],
-          },
-          ACADEMY_DATES_NOTE,
-        ],
-      },
-      {
-        label: "LESSON",
-        blocks: [
-          {
-            type: "lesson",
-            text: "The classifier alone was never enough. A rep is a sequence, and modelling it as one — automaton plus explicit physical constraints — did more for accuracy than any amount of extra training data. Sometimes the right answer is to write the rules down.",
           },
         ],
       },
@@ -947,7 +960,7 @@ export function caseStudyBySlug(slug: string): CaseStudy | undefined {
   return caseStudies.find((c) => c.slug === slug);
 }
 
-/** Cycles through the four, so "NEXT CASE STUDY" never dead-ends. */
+/** Cycles through every study, so "NEXT CASE STUDY" never dead-ends. */
 export function nextCaseStudy(slug: string): CaseStudy {
   const i = caseStudies.findIndex((c) => c.slug === slug);
   return caseStudies[(i + 1) % caseStudies.length];

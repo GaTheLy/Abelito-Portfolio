@@ -3,7 +3,7 @@
 // leave it unset locally so dev sees everything.
 export const LAUNCH_WIP = new Set(
   process.env.NEXT_PUBLIC_LAUNCH_MODE === "1"
-    ? ["manna", "talkative", "gerakin"]
+    ? ["manna", "talkative"]
     : [],
 );
 
@@ -54,23 +54,22 @@ export const projects: Project[] = [
     name: "Manna Cooking Studio",
     cat: "LLM & Agents",
     year: 2025,
-    meta: "2025 · CLIENT PROJECT",
-    badge: "REAL CLIENT",
+    meta: "2025 · SELF-DIRECTED DEMO",
+    badge: "DEMO BUILD",
     deep: true,
     blurb:
-      "A WhatsApp agent that replaced a cooking school's entire booking desk. RAG-grounded answers, a stateful booking flow, and calendar sync — running 24/7.",
+      "A cooking studio's whole booking journey, built end to end as a demo — customer website, admin dashboard and a WhatsApp agent that answers from live database rows, not from the model.",
     stack: [
+      "React",
       "TypeScript",
-      "Node",
-      "Baileys · WhatsApp",
-      "Gemini",
-      "Gemini embeddings",
-      "ChromaDB",
-      "Sheets API",
-      "Calendar API",
+      "Node · Express",
+      "Supabase",
+      "Google Gemini",
+      "Retrieval over live records",
+      "WhatsApp",
     ],
-    metric: "~80% admin cut",
-    keys: "rag retrieval chatbot whatsapp booking client freelance paid state machine chroma gemini typescript",
+    metric: "3 surfaces, 1 database",
+    keys: "rag retrieval chatbot whatsapp booking full-stack demo supabase express react state machine gemini typescript dashboard hitl",
   },
   {
     slug: "traffic",
@@ -104,24 +103,10 @@ export const projects: Project[] = [
     badge: "VOICE AI",
     deep: true,
     blurb:
-      "A pronunciation coach that names the sound you missed. Wav2Vec2, Librosa DSP and DTW alignment across 44+ phoneme classes on streaming audio.",
-    stack: ["Python", "Django REST", "PyTorch", "Wav2Vec2", "Librosa", "NumPy", "DTW"],
+      "A pronunciation coach that names the sound you missed — and the one you added. Target phonemes from eSpeak-NG, spoken phonemes from Wav2Vec2Phoneme, scored symbol by symbol on the device.",
+    stack: ["SwiftUI", "CoreML", "PyTorch", "eSpeak-NG", "Wav2Vec2Phoneme"],
     metric: "<2s per utterance",
-    keys: "speech audio wav2vec phoneme pronunciation dtw librosa django latency streaming",
-  },
-  {
-    slug: "gerakin",
-    name: "GerakinAja",
-    cat: "Computer Vision",
-    year: 2025,
-    meta: "2025 · APPLE DEVELOPER ACADEMY",
-    badge: "ON-DEVICE",
-    deep: true,
-    blurb:
-      "Rep counting and form correction from pose alone — a CoreML action classifier, a 5-state automaton and 4 biomechanical validators, all on the phone.",
-    stack: ["Swift", "Apple Vision", "CoreML", "Create ML", "AVFoundation"],
-    metric: "<200ms per frame",
-    keys: "pose coreml vision swift on-device offline fitness automaton classifier apple",
+    keys: "speech audio wav2vec phoneme pronunciation ios swiftui coreml espeak latency on-device omission insertion alignment",
   },
 ];
 

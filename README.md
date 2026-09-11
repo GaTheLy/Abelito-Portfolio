@@ -218,8 +218,9 @@ That conspicuousness is deliberate — don't style it down, fill it in.
 | TikTok embed IDs | `content/creator.ts` |
 | 5 About photos | `content/about.ts` |
 | **The About prose** | `content/about.ts` — chapters, the three turns, and "where I'm going" are a *draft of your voice*, reconstructed from your CV and one conversation. Dates, roles, metrics and awards are sourced; memories and motivations are not. |
-| Manna "What broke" | inferred — confirm the specifics |
-| Academy phase dates | Talkative and GerakinAja timelines |
+| **3 Manna screenshots** | `content/case-studies.ts` — website booking wizard, admin verification view, and the WhatsApp thread. Dashed slots with captions already written; drop the PNGs in `public/assets/manna/` and set `src`. |
+| Manna build order | the deck carries no dates — the TIMELINE phases are the order the project reads in |
+| Academy phase dates | the Talkative timeline |
 | **7 traffic-thesis figures** | `content/case-studies.ts` — every `image` block with no `src` is a dashed slot. Drop the PNG in `public/assets/traffic/` and set `src`; the caption is already written. |
 | Traffic phase dates | the slides carry none |
 | Traffic speed / sampling method | the slides don't name either, but the STACK still lists Lucas-Kanade and SSIM |
@@ -325,10 +326,10 @@ Placeholders needing real material are listed under **Open items**.
 
 | Route | Nav label | Purpose |
 |---|---|---|
-| `/` | Home | Hero, proof metrics, career timeline, four featured projects, pillar links |
+| `/` | Home | Hero, proof metrics, career timeline, featured case studies, pillar links |
 | `/work` | Work | Employment history with "what it changed", education, honours |
 | `/projects` | Projects | Searchable/filterable/sortable index of all projects |
-| `/projects/[slug]` | (Projects) | Full case study — 4 exist: `manna`, `traffic`, `talkative`, `gerakin` |
+| `/projects/[slug]` | (Projects) | Full case study — one per `deep` record in `content/projects.ts` |
 | `/writing` | Writing | Essay index, links out to Medium/Substack |
 | `/creator` | Creator | TikTok channel, formats, video embeds |
 | `/about` | About | The long personal narrative — the storytelling centrepiece |
@@ -349,7 +350,7 @@ Placeholders needing real material are listed under **Open items**.
      **The user wants a playful 3D render of his face here.** In production: a transparent PNG/WebP of the 3D avatar, or a `<model-viewer>`/three.js element, masked to the circle. His flat photo is used only on `/connect`.
 
 2. **Proof strip** — 4-col grid, top border `#DDD8CA`, `padding-top:26px`. Numbers `400 30px/1 Space Grotesk`, `letter-spacing:-.035em`, `#1E4D3B`; labels `400 11px/1.4 JetBrains Mono`, `#6E6A5C`.
-   `97.4%` congestion classifier, 14.4ms inference · `<2s` phoneme-level scoring · `~80%` admin work cut for a paying client · `0` critical findings, 3rd-party pen test.
+   `97.5%` congestion classifier, 18–22 FPS · `<2s` phoneme-level scoring, on-device · `8` microservices in a CV active-learning monorepo · `0` critical findings, 3rd-party pen test.
 
 3. **"THE ROUTE HERE"** — horizontal 5-column timeline. A 1px `#DDD8CA` line at `top:7px` spans the row; each column starts with a 9px dot (`#CFC9B8`, current node `#D64A2B`). Eyebrow labels `700 9.5px JetBrains Mono`, `.12em`. Nodes: Petra Christian University (2021–2025) · Apple Developer Academy (Feb–Dec 2025) · Axrail, AWS Partner (Jan–Mar 2026) · KinetixPro (Feb–Apr 2026) · **NOW** Datasaur.
 
@@ -368,7 +369,7 @@ Four role blocks, each `border-top:1px solid #DDD8CA; padding:28px 0`, laid out 
 - **Datasaur** — Jun 2026 → now (date label in `#D64A2B`), AI Engineer. Deliberately high-level: "the work is internal."
 - **KinetixPro** — Feb–Apr 2026, AI/ML Engineer Intern. Three bullets: 8-service CV active-learning monorepo (Docker Compose + NVIDIA Container Toolkit, YOLOv7 auto-labelling, continuous training, dataset QA); OpenCV/FFmpeg sampling engine off MediaMTX RTSP; GPU inference endpoints with cloud dataset sync.
 - **Axrail (AWS Partner)** — Jan–Mar 2026, AWS Cloud Engineer Trainee. Four bullets: Bedrock Nova Lite + Strands Agents conversational commerce agent (KB RAG, cross-session memory, order-trend analysis, MCP tool-use, 5-iteration loop, WebSocket); AppSync/12 DynamoDB tables/5 EventBridge Lambdas timesheet automation; 11-micro-stack multi-tenant CDK platform (SSM, OpenSearch, SQS FIFO, Step Functions); security — Cognito RBAC, API GW authorizers, Bedrock Guardrails, rate limiting, **zero critical pen-test findings**.
-- **Apple Developer Academy** — Feb–Dec 2025. Three product cards: Talkative, Cire, GerakinAja.
+- **Apple Developer Academy** — Feb–Dec 2025. Two product cards: Talkative, Cire.
 
 Each block closes with a "What it changed:" pull-quote — `400 14.5px/1.6 Newsreader`, `border-left:2px solid #1E4D3B`, `padding-left:15px`.
 
@@ -386,7 +387,7 @@ Footer: two columns — **Education & certification** (Petra CS Data Science 202
 {
   slug, name, cat, year,
   meta,        // small caps line, e.g. "2025 · CLIENT PROJECT"
-  badge,       // e.g. "REAL CLIENT"
+  badge,       // e.g. "DEMO BUILD" — short, and it is a claim
   deep: true,  // has a full case study → card routes to /projects/[slug]
   ask: "rag",  // OR: no case study → card opens this chat answer ("work" = go to /work)
   blurb, stack: [], metric,
@@ -398,10 +399,9 @@ Nine records exist. Categories: `LLM & Agents`, `Computer Vision`, `Voice & Audi
 
 | Project | Cat | Year | Deep | Metric |
 |---|---|---|---|---|
-| Manna Cooking Studio | LLM & Agents | 2025 | ✅ | ~80% admin cut |
+| Manna Cooking Studio | LLM & Agents | 2025 | ✅ | 3 surfaces, 1 database |
 | Traffic congestion detection | Computer Vision | 2025 | ✅ | 97.4% at 14.4ms |
 | Talkative | Voice & Audio | 2025 | ✅ | <2s per utterance |
-| GerakinAja | Computer Vision | 2025 | ✅ | <200ms per frame |
 | Riset | LLM & Agents | 2026 | — (`ask:"rag"`) | hybrid retrieval + evals |
 | Axrail commerce agent | LLM & Agents | 2026 | — (`ask:"work"`) | 0 critical pen-test findings |
 | Padel court analytics | Computer Vision | 2026 | — (`ask:"cv"`) | holds identity through occlusion |
@@ -442,17 +442,17 @@ Cards: 2-col grid, `gap:16px`. Same card chrome as Home. Contents: name + badge 
 2. **H1** — `300 52px/1.04 Newsreader`, `-.03em`, `max-width:~20ch`. These are arguments, not titles: "Counting cars is not measuring traffic." / "A whole business was running out of one WhatsApp inbox." / "'Close enough' is not feedback." / "A form coach that never leaves the phone."
 3. **Standfirst** — `400 17px/1.6 Newsreader`, `#3D3A31`, `max-width:60ch`.
 4. **Meta strip** — 4 cells, `border-top`/`border-bottom` `#DDD8CA`, `padding:18px 0`. Labels `400 9.5px JetBrains Mono` `.1em` `#6E6A5C`; values `400 13px/1.45 Space Grotesk`.
-   **Important:** this strip is a scan layer only and must NOT repeat role or stack — those have their own sections. Cells are: Traffic `CONTEXT/YEAR/WHERE/OUTCOME`; Manna `CONTEXT/CLIENT/SURFACE/OUTCOME`; Talkative & GerakinAja `CONTEXT/WHERE/DOMAIN/OUTCOME`.
-5. **Body** — a two-column grid, `grid-template-columns:106px 1fr; gap:24px`. Left column is the section label (`700 9.5px JetBrains Mono`, `.14em`, `#6E6A5C`, `padding-top:5px`); right column is the content. **Section order is fixed and identical across all four:**
+   **Important:** this strip is a scan layer only and must NOT repeat role or stack — those have their own sections. Cells are: Traffic `CONTEXT/YEAR/WHERE/OUTCOME`; Manna `CONTEXT/USE CASE/SURFACES/OUTCOME`; Talkative `CONTEXT/WHERE/DOMAIN/OUTCOME`.
+5. **Body** — a two-column grid, `grid-template-columns:106px 1fr; gap:24px`. Left column is the section label (`700 9.5px JetBrains Mono`, `.14em`, `#6E6A5C`, `padding-top:5px`); right column is the content. **Divergence:** the built page stacks the label above its content instead, and uses the `t-section` role (`700 12px JetBrains Mono`, `.12em`, `#17160F`) rather than `t-label` — at 9.5px in `#6E6A5C` a heading stacked over 15px body copy read as a caption on the content rather than a heading above it. **Section order is fixed and identical across all four:**
 
    `OVERVIEW → MY ROLE → PROBLEM → APPROACH → ARCHITECTURE → RESULTS → STACK → TIMELINE → LESSON`
 
-   (Manna inserts `WHAT BROKE` between TIMELINE and LESSON.)
+   (Manna inserts `WHAT'S NOT REAL` and traffic `WHAT'S WEAK` immediately before STACK.)
 
    - **ARCHITECTURE** — a hand-built diagram: `1px solid #DDD8CA`, `border-radius:8px`, `background:#FBFAF6`, a caption bar, then boxed nodes (`500 11px JetBrains Mono`, `padding:9px 13px`, `1px solid #17160F`, `border-radius:4px`, `background:#F7F5EF`; emphasis nodes `#1E4D3B` on `#EAF0EC`; terminal node inverted `#1E4D3B`/`#F7F5EF`) joined by 1px `#B3AC9A` lines with CSS-triangle arrowheads. Talkative's is instead a dark `#17160F` ASCII `<pre>` block. **All four are placeholders** — replace with real exported diagrams (Mermaid is fine).
    - **RESULTS** — 4-cell metric grid, `1px solid #DDD8CA`, `border-radius:8px`, dividers between cells. Numbers `400 26px/1 Space Grotesk`, `-.035em`; the headline metric in `#1E4D3B`, the rest `#17160F`.
    - **STACK** — chip row, `400 10.5px JetBrains Mono`, `padding:6px 11px`, `1px solid #DDD8CA`, `border-radius:4px`, `background:#FBFAF6`. Must match the record's `stack` — do not maintain a second list.
-   - **TIMELINE** — horizontal 3–4 column phase timeline, same construction as Home's. Talkative's and GerakinAja's carry a note: "Confirm the real phase dates against your Academy cycles."
+   - **TIMELINE** — horizontal 3–4 column phase timeline, same construction as Home's. Talkative's carries a note: "Confirm the real phase dates against your Academy cycles."
    - **LESSON** — `400 17px/1.65 Newsreader`, `border-left:2px solid #1E4D3B`, `padding-left:18px`, `max-width:58ch`.
 6. **Footer** — "NEXT CASE STUDY" link (cycles through the four) + a chat CTA.
 
@@ -486,7 +486,7 @@ H1 "The part of me that isn't a job title."
 2. **Draft banner** — dashed amber, states plainly that everything from here to the end of "The three turns" is a draft of his voice: dates/roles/metrics/awards are sourced, memories and motivations are reconstructed. **Keep this until he rewrites the prose.**
 3. **CHAPTER 01 · WHERE THIS CAME FROM** — "Taking things apart, professionally." Two-column prose (`columns:2; column-gap:40px; column-rule:1px solid #DDD8CA`).
 4. **CHAPTER 02 · FEB—DEC 2025** — "The year I learned to finish." Prose + a 4:5 image slot + a Newsreader pull-quote (`400 19px/1.55`, green left rule).
-5. **CHAPTER 03 · THE FIRST INVOICE** — "Someone paid me, and everything got serious." (Manna, from the client's side.)
+5. **CHAPTER 03 · THE BUILD NOBODY ASKED FOR** — "I built the whole thing to find out what it costs." (Manna, which was a self-directed demo and never a client.)
 6. **CHAPTER 04 · 2026** — "Three rooms, three different ways to be wrong." Three cards: Axrail (write it down first) · KinetixPro (a dataset is a loop) · Datasaur (language, at someone else's scale). Closing pull-quote.
 7. **THE THREE TURNS** — three numbered rows (`300 26px Newsreader` numerals in `#D64A2B`) of moments that changed how he builds.
 8. **WHAT I'M INTO** — 2×2: Cars · Markets · Explaining things out loud · **one open amber card** he must fill in.
@@ -553,10 +553,10 @@ Each has: a `QLABEL` (the question text shown in the user bubble), a `FOCUS` ent
 ```
 rag       /rag|retriev|riset|arxiv|hybrid|rrf|bm25|embed|vector|mcp|agent/
 evals     /eval|ragas|benchmark|measur|test|regress|judge|accura(cy|te)|hallucinat/
-manna     /manna|client|whatsapp|chatbot|booking|freelance|paid work/
+manna     /manna|whatsapp|chatbot|booking|cooking|studio/
 cv        /vision|yolo|cv |opencv|traffic|padel|pose|camera|detect|image/
 datasaur  /datasaur|2 month|two month|why only|job hop|short stint|current role/
-rate      /rate|salary|pay|cost|price|hour|available|availab|notice|hire|hiring|contract|relocat|remote|visa/
+rate      /rate|salary|pay|cost|price|hour|available|availab|notice|hire|hiring|contract|client|freelance|relocat|remote|visa/
 good      /actually good|are you good|any good|weak|weakness|strength|honest|junior|senior|level/
 creator   /tiktok|content|creator|video|channel|audience|social|teach/
 ```
@@ -695,7 +695,7 @@ Page transitions and chat messages both use the same short rise-and-fade. Custom
 2. **Real LLM + knowledge base**, replacing the nine authored answers — with the guardrails above preserved.
 3. **Datasaur content.** Intentionally high-level; he said "high-level only, no metrics."
 4. **Writing URLs** — real Medium/Substack links (he confirmed writing lives externally).
-5. **Verify the inferred content.** The Manna "WHAT BROKE" section and both Academy timelines were written by inference and are flagged in-page; the About narrative and aspirations carry draft banners. All must be confirmed or rewritten before launch.
+5. **Verify the inferred content.** Both Academy timelines and Manna's build order were written by inference and are flagged in-page; the About narrative and aspirations carry draft banners. All must be confirmed or rewritten before launch.
 6. **`/projects` deep-linking** — search/filter/sort state should live in the URL so a filtered view is shareable.
 7. **Accessibility** — the prototype uses `<button>` for navigation and semantic headings, but needs real focus-visible styles, an aria-live region for streaming answers, and a skip link.
 

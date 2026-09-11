@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Page from "@/components/ui/Page";
 import PageHeader from "@/components/ui/PageHeader";
 import AskButton from "@/components/ui/AskButton";
-import Callout from "@/components/ui/Callout";
 import { fetchMediumPosts, MEDIUM_PROFILE, type MediumPost } from "@/lib/medium";
-import { WRITING_INTRO, knownPosts, unwritten } from "@/content/writing";
+import { WRITING_INTRO, knownPosts } from "@/content/writing";
 
 export const metadata: Metadata = {
   title: "Writing",
@@ -99,15 +98,6 @@ export default async function WritingPage() {
           </article>
         ))}
       </div>
-
-      {unwritten.length > 0 ? (
-        <Callout label="Not written yet" className="mt-8">
-          The site talks about evaluation, hybrid retrieval and the Manna state machine in a few
-          places, but those essays don&apos;t exist yet — {unwritten.join(" · ")} They&apos;ll
-          appear here automatically once they&apos;re published; remove them from{" "}
-          <code className="font-mono">content/writing.ts</code> as they land.
-        </Callout>
-      ) : null}
 
       <div className="mt-9 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-divider bg-well px-5 py-4">
         <p className="m-0 max-w-[56ch] text-[13.5px]/[1.6] text-ink-body">

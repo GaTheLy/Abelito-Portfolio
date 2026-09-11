@@ -31,13 +31,3 @@ export const knownPosts: MediumPost[] = [
       "A while ago, I had a quick conversation with some friends about attachment and detachment.",
   },
 ];
-
-/** The technical writing the rest of the site alludes to — evals, hybrid
- *  retrieval, the state machine behind Manna — is NOT written yet. It stays
- *  named here so the page can be honest about it rather than implying essays
- *  that don't exist. Delete an entry once it's published. */
-export const unwritten = [
-  "A vibe check is not an eval — freezing a benchmark before you tune.",
-  "Dense search knows what you meant. BM25 knows what you typed.",
-  "The chatbot was easy. The state machine took three weeks.",
-];

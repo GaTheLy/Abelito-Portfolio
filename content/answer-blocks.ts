@@ -51,7 +51,7 @@ const raw: Record<TopicId, BlockInput[]> = {
       type: "followups",
       items: [
         { label: "So how do you evaluate it?", topic: "evals", primary: true },
-        { label: "RAG that shipped to a client", topic: "manna" },
+        { label: "RAG grounded in a live database", topic: "manna" },
       ],
     },
   ],
@@ -100,38 +100,37 @@ const raw: Record<TopicId, BlockInput[]> = {
       type: "followups",
       items: [
         { label: "What's being evaluated?", topic: "rag", primary: true },
-        { label: "Read the essay →", href: "/writing" },
       ],
     },
   ],
 
   manna: [
-    { type: "heading", text: "A cooking school ran its whole business from one WhatsApp inbox" },
+    { type: "heading", text: "A whole booking journey, built across three surfaces" },
     {
       type: "text",
-      md: "Manna Cooking Studio in Surabaya. Availability, pricing, payment proof, calendar — all of it went through one person typing replies, office hours only. Bookings died overnight.",
+      md: "Manna Cooking Studio is a **demo I built for myself** — an example use case, never deployed to the studio. The point was to find out what an end-to-end AI-integrated system actually costs to assemble, rather than to ship one more chatbot.",
     },
     {
       type: "text",
-      md: "I built an agent on WhatsApp with TypeScript and Baileys, Gemini for generation, and a RAG layer over ChromaDB grounded in 10+ curated studio documents — so pricing and policy answers come from *their* words. On top: a stateful booking engine that walks class → schedule → payment proof → admin verification and syncs to Google Sheets and Calendar.",
+      md: "A customer website, an admin dashboard and a WhatsApp agent, all on one Supabase database. React and TypeScript on the front, Node and Express behind, Gemini for the conversation. The agent doesn't answer from the model's idea of what a class costs — it retrieves price, duration and **live slot counts from the same rows the dashboard edits**, so the three surfaces can't contradict each other.",
     },
     {
       type: "metrics",
       items: [
-        { value: "24/7", label: "INBOUND COVERED", lead: true },
-        { value: "~80%", label: "ADMIN LOAD CUT", lead: true },
-        { value: "10+", label: "GROUNDING DOCS", lead: true },
+        { value: "3", label: "SURFACES, ONE DATABASE", lead: true },
+        { value: "1", label: "HUMAN APPROVES EVERY PAYMENT" },
+        { value: "0", label: "REAL DEPLOYMENTS" },
       ],
     },
     {
       type: "lesson",
-      text: "The model was the easy part. Nearly all the work was *state* — knowing where someone is in a booking, and what to do when they vanish for two days and come back mid-flow.",
+      text: "An agent is only as trustworthy as the schema underneath it. The model stopped inventing prices not because I prompted it better, but because there was a row to read.",
     },
     {
       type: "followups",
       items: [
         { label: "Full case study →", href: "/projects/manna", primary: true },
-        { label: "How did you stop it hallucinating?", topic: "evals" },
+        { label: "How do you keep it from hallucinating?", topic: "evals" },
       ],
     },
   ],
@@ -148,7 +147,6 @@ const raw: Record<TopicId, BlockInput[]> = {
         { cells: ["Traffic congestion", "flow, not counts", "97.5% · 18–22 FPS"], highlight: true },
         { cells: ["Padel analytics", "occlusion, identity", "YOLO26 + SAM 3"] },
         { cells: ["Cire", "cost per API call", "~80% fewer calls"] },
-        { cells: ["GerakinAja", "on-device latency", "<200ms/frame"] },
         { cells: ["KinetixPro", "the labelling loop", "8 services"] },
       ],
     },
@@ -160,7 +158,6 @@ const raw: Record<TopicId, BlockInput[]> = {
       type: "followups",
       items: [
         { label: "Open the traffic case study →", href: "/projects/traffic", primary: true },
-        { label: "GerakinAja →", href: "/projects/gerakin" },
       ],
     },
   ],
@@ -258,7 +255,7 @@ const raw: Record<TopicId, BlockInput[]> = {
             "Retrieval design — hybrid, fusion, chunking that survives real queries",
             "Agent tooling: I build MCP servers, not just consume them",
             "CV pipelines end to end, including the boring ops around them",
-            "Shipping. Nine systems, three organisations, one paying client",
+            "Shipping. Nine systems end to end, across three organisations",
           ],
         },
         {

@@ -6,7 +6,7 @@ import { TOPIC_IDS } from "../content/answers.ts";
 //
 //   1. the nine authored chat answers (content/answer-blocks.ts)
 //   2. the LLM's structured output (app/api/ask/route.ts)
-//   3. the four case-study bodies (content/case-studies.ts)
+//   3. the case-study bodies (content/case-studies.ts)
 //
 // Because it is a Zod schema and not just a TS type, the same definition
 // validates model output at runtime and generates the JSON schema the model is
@@ -23,6 +23,27 @@ import { TOPIC_IDS } from "../content/answers.ts";
  *  keeps generated diagrams inside the house style. */
 export const MERMAID_KINDS = ["flowchart TB", "flowchart LR", "sequenceDiagram"] as const;
 export type MermaidKind = (typeof MERMAID_KINDS)[number];
+
+/** Node classes every authored diagram may use, so content never repeats them.
+ *  `emphasis` = the interesting step, `terminal` = the output, `draft` = a
+ *  not-yet-real stage (dashed amber, the same language as a callout). */
+export const MERMAID_CLASSDEFS = [
+  "classDef emphasis fill:#EAF0EC,stroke:#1E4D3B,color:#1E4D3B",
+  "classDef terminal fill:#1E4D3B,stroke:#1E4D3B,color:#F7F5EF",
+  "classDef draft fill:#FFF6D8,stroke:#C9B96B,color:#8A7A32,stroke-dasharray:4 3",
+].join("\n");
+
+/** The exact source handed to mermaid. Lives here, not in the renderer, so
+ *  site.test.ts can parse what the browser will actually parse.
+ *
+ *  `classDef` is flowchart-only — injecting it into a sequenceDiagram is a
+ *  parse error, which threw before render and silently dropped every sequence
+ *  diagram to the raw-source fallback. */
+export function mermaidSource(kind: MermaidKind, code: string): string {
+  return [kind, kind.startsWith("flowchart") ? MERMAID_CLASSDEFS : "", code]
+    .filter(Boolean)
+    .join("\n");
+}
 
 const heading = z.object({
   type: z.literal("heading"),
@@ -90,6 +111,14 @@ const image = z.object({
   alt: z.string().optional(),
   /** CSS aspect-ratio, so the slot reserves the shape the image will take. */
   ratio: z.string().default("16 / 9"),
+});
+
+/** A row of figures. Two portrait screenshots stacked full-width is a scroll,
+ *  not a comparison — this sets 2-3 beside each other, each keeping its own
+ *  caption and its own empty-slot behaviour. */
+const figures = z.object({
+  type: z.literal("figures"),
+  items: z.array(image.omit({ type: true })).min(2).max(3),
 });
 
 const metrics = z.object({
@@ -210,6 +239,7 @@ export const blockSchema = z.discriminatedUnion("type", [
   keyvalue,
   mermaid,
   image,
+  figures,
   metrics,
   stack,
   timeline,
@@ -270,6 +300,7 @@ export const blockLabel: Record<BlockType, string> = {
   keyvalue: "Details",
   mermaid: "Architecture",
   image: "Figure",
+  figures: "Figures",
   metrics: "Results",
   stack: "Stack",
   timeline: "Timeline",

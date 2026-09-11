@@ -44,7 +44,7 @@ export const chapters: Chapter[] = [
     title: "The year I learned to finish.",
     paragraphs: [
       "University gave me models. The Apple Developer Academy gave me deadlines and strangers — designers and product people who didn't care how elegant the architecture was if the thing felt broken in their hands. That combination did more for me than another year of theory would have.",
-      "Three products came out of that year. **Talkative** taught me that latency is a product decision — testers called the same model smart at two seconds and broken at six. **GerakinAja** taught me that a rep is a sequence, and that writing the rules down beat throwing more data at the problem. **Cire** taught me that the cost of a system is a design constraint, not an invoice you read later.",
+      "Each product from that year left a lesson. **Talkative** taught me that latency is a product decision — testers called the same model smart at two seconds and broken at six. **Cire** taught me that the cost of a system is a design constraint, not an invoice you read later.",
       "We won Hackfest that April with a computer-vision pipeline for image-based semantic search inside a B2B marketplace. Competitions compress the whole lesson into a weekend: you find out fast that deciding what to cut is the actual skill.",
     ],
     imageSlot: { ratio: "4/5", prompt: "The Academy year" },
@@ -52,12 +52,13 @@ export const chapters: Chapter[] = [
       "I arrived thinking I was there to learn machine learning. I left knowing how to ship — which turned out to be the rarer thing.",
   },
   {
-    eyebrow: "CHAPTER 03 · THE FIRST INVOICE",
-    title: "Someone paid me, and everything got serious.",
+    eyebrow: "CHAPTER 03 · THE BUILD NOBODY ASKED FOR",
+    title: "I built the whole thing to find out what it costs.",
     paragraphs: [
-      "A cooking school in Surabaya was running its whole business out of one WhatsApp inbox, and I built the agent that took it over. What I'd actually taken on was the difference between a demo and a dependency: a wrong answer here wasn't a bad benchmark score, it was somebody's booking.",
-      "So I grounded every factual answer in documents the studio wrote themselves, and I left a human in the loop on money — the agent never approves a payment. That wasn't a technical limitation. It was the thing that made them trust it.",
-      "The hardest part wasn't the model at all — it was state. Real conversations pause, wander and resume days later, and building something that could pick a person back up mid-flow taught me more about conversational systems than any paper had.",
+      "Manna Cooking Studio is a business I have never worked for. I picked it as an example — a real *kind* of business, with the seams a small studio actually has — and built the entire booking platform for it anyway: the customer website, the admin dashboard, and the WhatsApp agent people would really use. Nobody commissioned it and nobody deployed it.",
+      "Building all three is what taught me the lesson. A chatbot on its own can sound completely confident about a price it invented. A chatbot sitting on a schema I also wrote can only tell you what a row says — and the moment that was true, reliability stopped coming from the prompt.",
+      "I stopped the automation at money on purpose. The agent captures the booking and then waits for a person to look at the payment proof. Nobody was going to lose a reservation over it, because nobody was using it — but building the pause in anyway is the version of the system I'd be willing to hand to someone.",
+      "What a demo can't hand me is the failure I most want to see: the conversation that pauses for three days and comes back with a payment screenshot and no context. I've designed for it. I haven't been tested on it.",
     ],
   },
   {
@@ -128,7 +129,7 @@ export const interests = [
 export const people = {
   paragraphs: [
     "Nothing on this site was built alone, and the projects with my name on them are the ones where somebody else told me the truth early.",
-    "The Apple Developer Academy put me in a cohort of designers and product people who were unimpressed by clever models and only cared whether the thing worked in someone's hands. Talkative and GerakinAja exist because teammates kept asking the annoying question — *would you actually use this?* — until the answer was yes. I got better at engineering by working next to people who weren't engineers.",
+    "The Apple Developer Academy put me in a cohort of designers and product people who were unimpressed by clever models and only cared whether the thing worked in someone's hands. Talkative exists because teammates kept asking the annoying question — *would you actually use this?* — until the answer was yes. I got better at engineering by working next to people who weren't engineers.",
     "Outside work it's the same handful of friends since university — the group chat that gets the half-finished idea before anyone else does, and tells me when it's boring.",
   ],
   prompt:
@@ -178,7 +179,7 @@ export const going = {
     {
       label: "THE LONG BET",
       title: "AI that works in Indonesia",
-      body: "Most of what I've built solved local problems with global tools — traffic on Malang's roads, a Surabaya studio's inbox. I want more of my work to be useful here first, and to help more Indonesian engineers get in early.",
+      body: "Most of what I've built solved local problems with global tools — traffic on Malang's roads, a Malang studio's booking desk. I want more of my work to be useful here first, and to help more Indonesian engineers get in early.",
     },
   ],
   knownFor:

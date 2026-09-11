@@ -465,6 +465,15 @@ h3 {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+/* Case-study section headings. Same mono-eyebrow language as t-label, but
+   sized and tracked to out-rank the 15px body copy underneath it — nine of
+   these stack down a case study, and at t-label's 9.5px grey they read as
+   captions on the content rather than headings above it. */
+@utility t-section {
+  font: 700 12px var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 @utility t-meta {
   font: 400 10px var(--font-mono);
   letter-spacing: 0.06em;

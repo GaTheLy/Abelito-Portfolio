@@ -14,8 +14,8 @@ export const STANDFIRST =
 /** Two lines each, so the labels break where the design breaks them. */
 export const proof = [
   { value: "97.5%", label: "congestion classifier,\n18–22 FPS end to end" },
-  { value: "<2s", label: "phoneme-level scoring\non streaming audio" },
-  { value: "~80%", label: "admin work cut\nfor a paying client" },
+  { value: "<2s", label: "phoneme-level scoring,\non-device" },
+  { value: "8", label: "microservices in a CV\nactive-learning monorepo" },
   { value: "0", label: "critical findings,\n3rd-party pen test" },
 ];
 

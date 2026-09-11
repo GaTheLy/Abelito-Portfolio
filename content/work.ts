@@ -77,7 +77,7 @@ export const roles: Role[] = [
     place: "Surabaya, Indonesia",
     note: "Graduated Dec 2025",
     intro:
-      "A year of finishing things. Three products, each one a different lesson in how much of ML engineering is actually latency, state and interface.",
+      "A year of finishing things — each product a different lesson in how much of ML engineering is actually latency, state and interface.",
     products: [
       {
         name: "Talkative",
@@ -88,11 +88,6 @@ export const roles: Role[] = [
         name: "Cire",
         blurb: "Edge-to-cloud CV: 3 streams, 30 FPS, ~80% fewer API calls.",
         ask: "cv",
-      },
-      {
-        name: "GerakinAja",
-        blurb: "On-device pose analysis, rep counting, form correction.",
-        href: "/projects/gerakin",
       },
     ],
   },

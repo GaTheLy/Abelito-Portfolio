@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import type { MermaidKind } from "@/lib/blocks";
+import { mermaidSource, type MermaidKind } from "@/lib/blocks";
 
 /** Palette-matched theme. Mermaid's `base` theme is the only one that honours
  *  themeVariables, so everything is set explicitly here rather than tweaked off
@@ -17,15 +17,6 @@ const THEME = {
   fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
   fontSize: "11px",
 } as const;
-
-/** Node classes the authored diagrams use, so content doesn't repeat them.
- *  `emphasis` = the interesting step, `terminal` = the output, `draft` = a
- *  not-yet-real stage (dashed amber, same language as the page callouts). */
-const CLASSDEFS = [
-  "classDef emphasis fill:#EAF0EC,stroke:#1E4D3B,color:#1E4D3B",
-  "classDef terminal fill:#1E4D3B,stroke:#1E4D3B,color:#F7F5EF",
-  "classDef draft fill:#FFF6D8,stroke:#C9B96B,color:#8A7A32,stroke-dasharray:4 3",
-].join("\n");
 
 interface Props {
   kind: MermaidKind;
@@ -65,7 +56,7 @@ export default function Mermaid({ kind, code, alt, complete = true }: Props) {
         flowchart: { curve: "linear", padding: 14 },
       });
 
-      const source = `${kind}\n${CLASSDEFS}\n${code}`;
+      const source = mermaidSource(kind, code);
 
       try {
         // parse() throws on bad syntax — check before render so a malformed

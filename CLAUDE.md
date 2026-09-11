@@ -76,7 +76,7 @@ sheet). Don't reintroduce a single-answer state or the old "EARLIER" ghost trail
 
 1. the nine authored chat answers (`content/answer-blocks.ts`)
 2. the LLM's structured output (`app/api/ask/route.ts`)
-3. the four case-study bodies (`content/case-studies.ts`)
+3. the case-study bodies (`content/case-studies.ts`)
 
 Adding a block type means: schema entry → `BlockList` case → `blockLabel` entry
 → `blockToText` in `content/corpus.ts`. All four, or something silently breaks.

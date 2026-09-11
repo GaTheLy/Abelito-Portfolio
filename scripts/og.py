@@ -90,7 +90,7 @@ def main() -> None:
     d.line([(PAD, y), (PAD + 560, y)], fill=DIVIDER, width=1)
 
     y += 34
-    proof = [("97.4%", "congestion accuracy"), ("<2s", "phoneme scoring"), ("~80%", "admin cut")]
+    proof = [("97.5%", "congestion accuracy"), ("<2s", "phoneme scoring"), ("0", "critical findings")]
     TRACK, GUTTER = 1.2, 38
     x = PAD
     for value, label in proof:

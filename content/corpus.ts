@@ -4,7 +4,7 @@ import { answerBlocks } from "./answer-blocks.ts";
 import { projects } from "./projects.ts";
 import { caseStudies } from "./case-studies.ts";
 import { roles, education, honours } from "./work.ts";
-import { knownPosts, WRITING_INTRO, unwritten } from "./writing.ts";
+import { knownPosts, WRITING_INTRO } from "./writing.ts";
 import { formats, HANDLE } from "./creator.ts";
 import { contacts } from "./connect.ts";
 import {
@@ -53,6 +53,14 @@ function blockToText(block: Block): string {
       return block.src
         ? `Figure: ${block.caption}`
         : `[FIGURE NOT YET SUPPLIED — do not describe it as shown] ${block.caption}`;
+    case "figures":
+      return block.items
+        .map((f) =>
+          f.src
+            ? `Figure: ${f.caption}`
+            : `[FIGURE NOT YET SUPPLIED — do not describe it as shown] ${f.caption}`,
+        )
+        .join("\n");
     case "metrics":
       return block.items.map((m) => `${m.value} — ${m.label}`).join("; ");
     case "stack":
@@ -201,7 +209,6 @@ function buildDocs(): Doc[] {
       ...knownPosts.map(
         (p) => `"${p.title}" (${p.date.slice(0, 10)}, tags: ${p.tags.join(", ")}) — ${p.excerpt}`,
       ),
-      `NOT YET WRITTEN, do not describe these as published: ${unwritten.join(" / ")}`,
     ].join("\n"),
   });
 

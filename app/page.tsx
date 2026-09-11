@@ -12,18 +12,18 @@ const PILLARS = [
     action: "Read the essays →",
     href: "/writing",
   },
-  {
-    label: "CREATOR",
-    body: "Breaking down AI on TikTok as @abelitovisese.",
-    action: "See the channel →",
-    href: "/creator",
-  },
-  {
-    label: "ABOUT ME",
-    body: "Where I'm from, what I'm into, and the people behind the work.",
-    action: "The personal story →",
-    href: "/about",
-  },
+  // {
+  //   label: "CREATOR",
+  //   body: "Breaking down AI on TikTok as @abelitovisese.",
+  //   action: "See the channel →",
+  //   href: "/creator",
+  // },
+  // {
+  //   label: "ABOUT ME",
+  //   body: "Where I'm from, what I'm into, and the people behind the work.",
+  //   action: "The personal story →",
+  //   href: "/about",
+  // },
 ];
 
 // Home is two stacked bands rather than one padded column, because the second
@@ -173,7 +173,7 @@ export default function HomePage() {
 
       {/* ── Below the fold ───────────────────────────────────────────────── */}
       <section className={`${PAD} mt-11`}>
-        <SectionHead label="Four I'd show you first" href="/projects" action="All nine →" />
+        <SectionHead label="The ones I'd show you first" href="/projects" action={`All projects →`} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {featured.map((project) => (
             <ProjectCard key={project.slug} project={project} variant="feature" />

@@ -5,7 +5,7 @@ import { MATCH, QLABEL, TOPIC_IDS, GUARDED, routeQuestion } from "../content/ans
 import { answerBlocks } from "../content/answer-blocks.ts";
 import { caseStudies, railContext } from "../content/case-studies.ts";
 import { projects, selectProjects, caseStudySlugs } from "../content/projects.ts";
-import { blockSchema } from "./blocks.ts";
+import { blockSchema, mermaidSource } from "./blocks.ts";
 import { parseMediumFeed } from "./medium.ts";
 
 // Everything with a branch, a loop or a rule lives here. Runs under bare
@@ -32,9 +32,9 @@ test("search requires EVERY token to match, not any", () => {
 });
 
 test("search covers stack and hidden keywords, not just the blurb", () => {
-  // "chroma" appears only in Manna's stack + keys, never in its blurb.
+  // "supabase" appears only in Manna's stack + keys, never in its blurb.
   assert.deepEqual(
-    selectProjects({ ...base, query: "chroma" }).map((p) => p.slug),
+    selectProjects({ ...base, query: "supabase" }).map((p) => p.slug),
     ["manna"],
   );
 });
@@ -259,4 +259,28 @@ test("medium parser survives a missing date and missing tags", () => {
 test("medium parser returns empty for junk rather than throwing", () => {
   assert.deepEqual(parseMediumFeed(""), []);
   assert.deepEqual(parseMediumFeed("<rss><channel></channel></rss>"), []);
+});
+
+// ── Diagrams ────────────────────────────────────────────────────────────────
+
+test("classDefs only reach the diagram kinds that accept them", () => {
+  // `classDef` is flowchart-only. Prepending it to a sequenceDiagram makes
+  // mermaid.parse throw, and the renderer degrades to raw source with no error
+  // anywhere — which is how the first authored sequence diagram shipped broken.
+  // Parsing for real needs a DOM (DOMPurify), so this asserts the rule instead.
+  assert.ok(!mermaidSource("sequenceDiagram", "  A->>B: hi").includes("classDef"));
+  assert.ok(mermaidSource("flowchart LR", "  a --> b").includes("classDef emphasis"));
+
+  for (const study of caseStudies) {
+    for (const section of study.sections) {
+      for (const block of section.blocks) {
+        if (block.type !== "mermaid") continue;
+        const where = `${study.slug} · ${section.label} · ${block.kind}`;
+        const source = mermaidSource(block.kind, block.code);
+        assert.equal(source.includes("classDef"), block.kind.startsWith("flowchart"), where);
+        // The renderer owns the graph-type line; content must not repeat it.
+        assert.ok(!block.code.trimStart().startsWith(block.kind), `${where}: repeats its kind`);
+      }
+    }
+  }
 });

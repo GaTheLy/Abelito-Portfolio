@@ -35,7 +35,7 @@ export const GUARDED: readonly TopicId[] = ["rate", "good", "datasaur"];
 export const QLABEL: Record<TopicId, string> = {
   rag: "Show me your best RAG work",
   evals: "How do you know your retrieval is any good?",
-  manna: "Something you shipped for a real client",
+  manna: "Show me the WhatsApp booking system you built",
   cv: "What's your computer vision background?",
   datasaur: "Why only 2 months at Datasaur?",
   rate: "What's your rate, and are you available?",
@@ -78,16 +78,16 @@ export const FOCUS: Record<TopicId, Focus> = {
   manna: {
     title: "Manna Cooking Studio",
     description:
-      "A WhatsApp agent that took over a cooking school's booking desk. My first paying client.",
-    k1: "ROLE",
-    v1: "Sole engineer, end to end",
+      "A cooking studio's whole booking journey — website, admin dashboard and WhatsApp agent — built end to end as a demo.",
+    k1: "STATUS",
+    v1: "Self-directed demo · never deployed",
     k2: "STACK",
-    v2: "TypeScript · Gemini · ChromaDB · Baileys",
+    v2: "React · Node · Supabase · Gemini",
   },
   cv: {
     title: "Computer vision",
     description:
-      "Four years of pointing models at cameras — traffic, sport, gyms, factory floors.",
+      "Four years of pointing models at cameras — traffic, sport, factory floors.",
     k1: "RANGE",
     v1: "YOLO11 → YOLO26 · SAM 3 · CoreML",
     k2: "BEST",
@@ -153,13 +153,13 @@ export const MATCH: readonly (readonly [RegExp, TopicId])[] = [
     "evals",
   ],
   [/rag|retriev|riset|arxiv|hybrid|rrf|bm25|embed|vector|mcp|agent/, "rag"],
-  [/manna|client|whatsapp|chatbot|booking|freelance|paid work/, "manna"],
+  [/manna|whatsapp|chatbot|booking|cooking|studio/, "manna"],
   [/vision|yolo|cv |opencv|traffic|padel|pose|camera|detect|image/, "cv"],
   [/datasaur|2 month|two month|why only|job hop|short stint|current role/, "datasaur"],
   [
     // \brate\b, not `rate` — the bare substring also fires on "generate",
     // "iterate" and "corporate", sending ordinary questions to the rate answer.
-    /\brate\b|salary|\bpay\b|cost|price|hour|availab|notice|hire|hiring|contract|relocat|remote|visa/,
+    /\brate\b|salary|\bpay\b|cost|price|hour|availab|notice|hire|hiring|contract|client|freelance|relocat|remote|visa/,
     "rate",
   ],
   [/actually good|are you good|any good|weak|weakness|strength|honest|junior|senior|level/, "good"],
