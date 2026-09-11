@@ -35,6 +35,12 @@ const jetbrainsMono = JetBrains_Mono({
 const DESCRIPTION =
   "AI Engineer at Datasaur. Retrieval systems, agent tooling and computer-vision pipelines — read the work, or ask the chat anything about it.";
 
+// The share preview speaks in his own words. The search description above stays
+// neutral, because it's what Google shows under the result.
+const SHARE_TITLE = "Abelito Faleyrio Visese";
+const SHARE_DESCRIPTION =
+  "Hey guys! I am Abelito, an AI Engineer at Datasaur. Take a look at my journey and what exciting project I've done!";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -46,16 +52,16 @@ export const metadata: Metadata = {
   // X reads og:image when twitter:image is absent, so one card covers both.
   openGraph: {
     type: "website",
-    siteName: "Abelito Visese",
-    title: "Abelito Visese — AI Engineer",
-    description: DESCRIPTION,
+    siteName: SHARE_TITLE,
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
     url: SITE_URL,
     locale: "en_GB",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Abelito Visese — AI Engineer",
-    description: DESCRIPTION,
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
   },
 };
 
